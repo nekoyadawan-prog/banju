@@ -14,13 +14,16 @@
             color: #f1f5f9;
             user-select: none;
             -webkit-user-select: none;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
         }
         canvas {
             touch-action: none;
             display: block;
         }
-        /* Tailwind(CDN)の適用前でもcanvasの大きさが正しく測れるよう、最低限を直書き */
-        body { display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; }
         main { position: relative; flex: 1 1 0%; min-height: 0; overflow: hidden; }
         #gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
     </style>
@@ -54,7 +57,7 @@
         <canvas id="gameCanvas" class="absolute inset-0 w-full h-full cursor-grab"></canvas>
 
         <div id="rotate-hint" class="hidden portrait:flex absolute top-2 left-1/2 -translate-x-1/2 z-20 pointer-events-none bg-amber-400/95 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-            📱 横向きにすると遊びやすいよ
+            📱 スマホを横向きにすると遊びやすいよ！
         </div>
 
         <div id="modal-overlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center z-30 p-4">
@@ -64,8 +67,8 @@
                     <h2 id="modal-title" class="text-2xl font-bold text-emerald-400">番重ソート RTA</h2>
 
                     <div id="modal-desc" class="text-xs sm:text-sm text-slate-300 leading-relaxed text-left bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-2">
-                        <p class="font-bold text-center text-amber-300 text-sm">【ルール】</p>
-                        <p class="text-[11px] text-slate-300 bg-slate-900 rounded-lg p-2 border border-slate-700">いちばんの目的は<strong class="text-emerald-300">同じ種類を同じ番重にまとめる</strong>こと。あとで品出ししやすく、きれいに積み直せているほど高得点！</p>
+                        <p class="font-bold text-center text-amber-300 text-sm">【ルール：狭い店舗の4枠積み直し】</p>
+                        <p class="text-[11px] text-slate-300 bg-slate-900 rounded-lg p-2 border border-slate-700">床に広げられる番重は<strong class="text-emerald-300">最大4つまで</strong>！限られたスペースで番重を出し入れしながら、同じ種類を同じ番重にまとめよう。</p>
                         <div class="grid grid-cols-2 gap-2 text-xs pt-1">
                             <div class="col-span-2 bg-slate-900 p-2 rounded-lg border border-blue-500/40 flex items-center space-x-2">
                                 <span class="inline-block w-7 h-7 rounded bg-slate-50 border-2 border-blue-600"></span>
@@ -92,11 +95,12 @@
                             </div>
                         </div>
                         <ul class="list-disc list-inside text-slate-400 text-[11px] pt-1 space-y-1">
-                            <li>台車の<strong class="text-amber-300">一番上の番重</strong>から床へ運び出して仕分けよう</li>
-                            <li><strong class="text-emerald-300">同じ種類は同じ番重</strong>へ。入りきらなければ<strong class="text-amber-300">なるべく近い段</strong>に</li>
+                            <li>台車の番重から床の4枠へ下ろして仕分け＆中身を整理しよう</li>
+                            <li>床がいっぱいのときは、床の番重と台車の番重を「⇄ 床と入替」ボタンで直接入れ替えられるよ</li>
+                            <li><strong class="text-emerald-300">同じ種類は1つの番重</strong>にまとめよう。入りきらない分だけ、いっぱいの番重の<strong class="text-amber-300">すぐ上かすぐ下</strong>に。まとめられるのに分けると減点</li>
                             <li>一番売れる<strong class="text-blue-300">牛乳は最上段</strong>だと高得点（品出しが楽！）</li>
                             <li>空の番重は <strong class="text-rose-400">「もう使わない」</strong> で撤去（台車に残すと減点）</li>
-                            <li>床の番重を全部積み直したら完了宣言。<strong class="text-amber-300">60点以上で合格</strong></li>
+                            <li>整理が終わったら、すべての番重を台車に積み直して完了宣言。<strong class="text-amber-300">60点以上で合格</strong></li>
                             <li class="list-none text-slate-500">採点: 同じ種類のまとまり60点 ＋ 牛乳が最上段30点 ＋ 片付け10点</li>
                             <li><strong class="text-emerald-300">3・2・1・スタート！</strong>の掛け声と同時にタイマーが動き出すよ</li>
                         </ul>
@@ -114,9 +118,10 @@
 
     <footer class="bg-slate-900 border-t border-slate-800 px-4 py-2.5 flex justify-between items-center z-10 shrink-0 shadow-lg">
         <div class="text-xs text-slate-400 hidden sm:block" id="footer-hint">
-            💡 同じ種類は同じ番重へ。牛乳は最上段が高得点。「最後に積んだ番重」が最上段になるよ。
+            💡 床で仕分け終わったら、すべての番重を台車に積み直して「できました！」を押そう！
         </div>
         <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
+            <button id="undo-btn" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs sm:text-sm border border-slate-700 transition-all disabled:opacity-40">↩ 1手戻す</button>
             <button id="reset-btn" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs sm:text-sm border border-slate-700 transition-all">
                 最初から
             </button>
@@ -127,9 +132,6 @@
     </footer>
 
     <script>
-        // ============================================================
-        // サウンド
-        // ============================================================
         class SoundFX {
             constructor() { this.ctx = null; }
             init() {
@@ -175,9 +177,6 @@
         }
         const sfx = new SoundFX();
 
-        // ============================================================
-        // 定数・商品定義
-        // ============================================================
         const FONT = '"Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif';
 
         const ITEM_TYPES = {
@@ -189,13 +188,12 @@
         };
         const ITEM_LIST = Object.values(ITEM_TYPES);
         const OTHER_TYPES = [ITEM_TYPES.JUICE_SHORT, ITEM_TYPES.CAFE, ITEM_TYPES.YAKULT, ITEM_TYPES.YOGURT];
-        // 商品ごとの背の高さ（セルに対する比率）
         const ITEM_HR = { milk_long: 0.96, juice_short: 0.9, cafe: 0.7, yakult: 0.74, yogurt: 0.58 };
 
         const GRID_COLS = 6;
         const GRID_ROWS = 2;
-        const FLOOR_COLS = 4;
-        const FLOOR_ROWS = 3;
+        const FLOOR_COLS = 2;
+        const FLOOR_ROWS = 2;
         const FLOOR_SLOT_COUNT = FLOOR_COLS * FLOOR_ROWS;
         const HEADER_H = 30;
 
@@ -206,35 +204,36 @@
             { stage: 4, crates: 10 }
         ];
 
-        // ============================================================
-        // ゲーム状態
-        // ============================================================
         let currentStageIdx = 0;
-        let gameState = 'READY';     // READY | COUNTDOWN | PLAYING | RESULT
-        let stageResults = [];                       // ステージごとの合格記録 {score, rank, ms, timeText, tries}
-        let stageTries = [0, 0, 0, 0];               // ステージごとの審査回数
-        let summaryPending = false;                  // 最終ステージ合格 → 次は総合結果へ
-        let summaryShown = false;                    // 総合結果を表示中
+        let gameState = 'READY';
+        let stageResults = [];
+        let stageTries = [0, 0, 0, 0];
+        let summaryPending = false;
+        let summaryShown = false;
         let lastPassed = false;
         let crates = [];
-        let stackTrolley = [];       // 末尾が最上段
-        let floorCrates = new Array(FLOOR_SLOT_COUNT).fill(null);   // 空きは必ず null
+        let stackTrolley = [];
+        let floorCrates = new Array(FLOOR_SLOT_COUNT).fill(null);
         let removedCrateIds = new Set();
-        let hasMoved = false;          // 実際に番重や商品を動かしたか（開始直後に完了宣言できないように）
+        let hasMoved = false;
 
         let draggingObject = null;
         let hoveredDropZone = null;
         let activeRemoveButtons = [];
+        let activeTrolleySwapButtons = [];
+        let activeSwapButtons = [];
+        let undoStack = [];
+        const BEST_KEY = 'banju_rta_best_v1';
 
         let startTime = 0;
         let elapsedTime = 0;
         let timerInterval = null;
         let timerStarted = false;
-        let roundToken = 0;          // 進行中の演出を無効化するための番号
-        let countdown = null;        // 3・2・1演出の状態
-        let crateAppear = {};        // 番重ごとの「台車に積まれた時刻」(落下アニメ用)
-        let pendingIds = [];         // 開始時に台車へ積む番重（積む順）
-        let goFlashUntil = 0;        // 「スタート！」文字を表示しておく時刻
+        let roundToken = 0;
+        let countdown = null;
+        let crateAppear = {};
+        let pendingIds = [];
+        let goFlashUntil = 0;
 
         let W = 0, H = 0;
 
@@ -247,13 +246,11 @@
         const modalDesc = document.getElementById('modal-desc');
         const modalBtn = document.getElementById('modal-btn');
         const resetBtn = document.getElementById('reset-btn');
+        const undoBtn = document.getElementById('undo-btn');
         const actionBtn = document.getElementById('action-btn');
         const timerDisplay = document.getElementById('timer-display');
         const phaseInstruction = document.getElementById('phase-instruction');
 
-        // ============================================================
-        // ユーティリティ
-        // ============================================================
         function rand(n) { return Math.floor(Math.random() * n); }
 
         function countMilk(crate) {
@@ -316,11 +313,7 @@
             return true;
         }
 
-        // ============================================================
-        // ステージ生成（牛乳は必ず最上段1箱に収まる数に制限）
-        // ============================================================
         function generateCrates(num) {
-            // 満杯に近い配置だと詰む（商品を逃がす場所がない）ので、充填率7割以下になるまで作り直す
             const maxFilledCells = Math.floor(num * GRID_ROWS * GRID_COLS * 0.7);
             for (let attempt = 0; attempt < 50; attempt++) {
                 const list = buildCrates(num);
@@ -343,7 +336,6 @@
                 list.push({ id: c, grid: Array.from({ length: GRID_ROWS }, () => Array(GRID_COLS).fill(null)) });
             }
 
-            // 牛乳: 最低3個、最大6個（1箱の2×3=6個に収まる）
             const totalMilk = Math.min(6, Math.max(3, Math.round(num * 0.9)));
             let placed = 0, guard = 0;
             while (placed < totalMilk && guard++ < 1000) {
@@ -368,12 +360,63 @@
             return list;
         }
 
+        function snapshot() {
+            return {
+                trolley: stackTrolley.slice(),
+                floor: floorCrates.slice(),
+                removed: Array.from(removedCrateIds),
+                contents: crates.map(cr => {
+                    const list = [];
+                    for (let r = 0; r < GRID_ROWS; r++) for (let c = 0; c < GRID_COLS; c++) {
+                        const cell = cr.grid[r][c];
+                        if (cell && cell.type) list.push({ item: cell, r, c });
+                    }
+                    return list;
+                })
+            };
+        }
+        function pushUndo() {
+            undoStack.push(snapshot());
+            if (undoStack.length > 100) undoStack.shift();
+            updateUndoBtn();
+        }
+        function updateUndoBtn() {
+            undoBtn.disabled = !(gameState === 'PLAYING' && undoStack.length > 0);
+        }
+        function undo() {
+            if (gameState !== 'PLAYING' || draggingObject || !undoStack.length) return;
+            const sn = undoStack.pop();
+            stackTrolley = sn.trolley;
+            floorCrates = sn.floor;
+            removedCrateIds = new Set(sn.removed);
+            crates.forEach((cr, i) => {
+                cr.grid = Array.from({ length: GRID_ROWS }, () => Array(GRID_COLS).fill(null));
+                sn.contents[i].forEach(e => placeItem(cr, e.r, e.c, e.item));
+            });
+            buzz(10);
+            updateUndoBtn();
+            updatePhaseUI();
+            render();
+        }
+        function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+        function loadBest() { try { return JSON.parse(localStorage.getItem(BEST_KEY)) || {}; } catch (e) { return {}; } }
+        function saveBest(stage, ms, score) {
+            try {
+                const b = loadBest();
+                const old = b[stage];
+                const isNew = !old || score > old.score || (score === old.score && ms < old.ms);
+                if (isNew) { b[stage] = { ms, score }; localStorage.setItem(BEST_KEY, JSON.stringify(b)); }
+                return { isNew, prev: old };
+            } catch (e) { return { isNew: false, prev: null }; }
+        }
+
         function initGame() {
             gameState = 'READY';
             roundToken++;
             summaryPending = false;
             summaryShown = false;
             hasMoved = false;
+            undoStack = [];
             countdown = null;
             crateAppear = {};
             goFlashUntil = 0;
@@ -381,6 +424,7 @@
             hoveredDropZone = null;
             removedCrateIds.clear();
             activeRemoveButtons = [];
+            activeTrolleySwapButtons = [];
             stopTimer();
             elapsedTime = 0;
             timerStarted = false;
@@ -396,16 +440,14 @@
                 if (evaluateLayout().total <= 50) break;
             }
             pendingIds = crates.map(c => c.id);
-            stackTrolley = [];          // 番重はスタート演出で1箱ずつ積まれる
+            stackTrolley = [];
             floorCrates = new Array(FLOOR_SLOT_COUNT).fill(null);
 
             updatePhaseUI();
+            updateUndoBtn();
             render();
         }
 
-        // ============================================================
-        // タイマー（「スタート！」の合図と同時に動き出す）
-        // ============================================================
         function renderTimer() {
             const mins = String(Math.floor(elapsedTime / 60000)).padStart(2, '0');
             const secs = String(Math.floor((elapsedTime % 60000) / 1000)).padStart(2, '0');
@@ -430,9 +472,6 @@
             }
         }
 
-        // ============================================================
-        // 進行状況の表示
-        // ============================================================
         function setActionEnabled(enabled) {
             actionBtn.disabled = !enabled;
             actionBtn.classList.toggle('opacity-50', !enabled);
@@ -441,6 +480,7 @@
         }
 
         function updatePhaseUI() {
+            updateUndoBtn();
             if (gameState === 'READY') {
                 phaseInstruction.textContent = '🚚 「ゲームスタート」で 3・2・1・スタート！';
                 setActionEnabled(false);
@@ -451,46 +491,46 @@
                 setActionEnabled(false);
                 return;
             }
+
             if (!hasMoved) {
-                phaseInstruction.textContent = '👉 台車の一番上の番重を床へ運び出して、仕分けスタート！';
+                phaseInstruction.textContent = '👉 番重を床の4枠へ下ろして中身を整理し、すべて台車に積み直そう！';
                 setActionEnabled(false);
                 return;
             }
-            const active = crates.filter(c => !removedCrateIds.has(c.id));
+
+            const activeCrates = crates.filter(c => !removedCrateIds.has(c.id));
             const onFloor = floorCrates.filter(id => id !== null).length;
             const onTrolley = stackTrolley.length;
+
             let totalMilk = 0;
-            active.forEach(c => { totalMilk += countMilk(c); });
+            activeCrates.forEach(c => { totalMilk += countMilk(c); });
             const topId = onTrolley > 0 ? stackTrolley[onTrolley - 1] : null;
             const topMilk = topId !== null ? countMilk(crates[topId]) : 0;
 
-            if (onFloor === 0 && onTrolley > 0) {
+            if (onFloor === 0 && onTrolley === activeCrates.length && activeCrates.length > 0) {
                 phaseInstruction.textContent = `✨ 全部積み終わり！ 最上段の牛乳 ${topMilk}/${totalMilk} ・「できました！」で審査へ`;
                 setActionEnabled(true);
             } else {
-                phaseInstruction.textContent = `📦 床 ${onFloor}箱 ／ 🚚 台車 ${onTrolley}箱 ／ 🥛 牛乳 全${totalMilk}個`;
+                phaseInstruction.textContent = `📦 床 ${onFloor}/4枠 ／ 🚚 台車 ${onTrolley}/${activeCrates.length}箱 ／ すべて台車に積むと完了できます`;
                 setActionEnabled(false);
             }
         }
 
-        // ============================================================
-        // レイアウト
-        // ============================================================
         function getLayout() {
-            const trW = Math.max(170, Math.min(230, W * 0.17));
-            const trH = Math.max(300, Math.min(460, H - 170));
+            const trW = Math.max(160, Math.min(210, W * 0.22));
+            const trH = Math.max(240, Math.min(380, H - 120));
             const trolley = {
-                x: 28,
-                y: Math.max(86, (H - trH) / 2 + 16),
+                x: 24,
+                y: Math.max(48, (H - trH) / 2 + 10),
                 w: trW,
                 h: trH
             };
 
-            const gx = trolley.x + trW + 72;
-            const gy = 84;
+            const gx = trolley.x + trW + 36;
+            const gy = 48;
             const gw = W - gx - 24;
-            const gh = H - gy - 22;
-            const gap = 14;
+            const gh = H - gy - 20;
+            const gap = 12;
             const slotW = (gw - gap * (FLOOR_COLS - 1)) / FLOOR_COLS;
             const slotH = (gh - gap * (FLOOR_ROWS - 1)) / FLOOR_ROWS;
 
@@ -509,26 +549,23 @@
         }
 
         function crateInner(slot) {
-            const x = slot.x + 7;
-            const y = slot.y + HEADER_H + 4;
-            const w = slot.w - 14;
-            const h = slot.h - HEADER_H - 11;
+            const x = slot.x + 6;
+            const y = slot.y + HEADER_H + 3;
+            const w = slot.w - 12;
+            const h = slot.h - HEADER_H - 9;
             return { x, y, w, h, cw: w / GRID_COLS, ch: h / GRID_ROWS };
         }
 
         function trolleyGeom(tr) {
             const n = stackTrolley.length;
             const slots = (gameState === 'COUNTDOWN' && countdown) ? Math.max(n, countdown.total) : n;
-            const innerTop = tr.y + 46;
-            const innerBottom = tr.y + tr.h - 18;
+            const innerTop = tr.y + 38;
+            const innerBottom = tr.y + tr.h - 16;
             const usable = innerBottom - innerTop;
-            const stepH = slots ? Math.max(18, Math.min(58, usable / slots)) : 0;
-            return { n, innerTop, innerBottom, stepH, cx: tr.x + 12, cw: tr.w - 24 };
+            const stepH = slots ? Math.max(16, Math.min(48, usable / slots)) : 0;
+            return { n, innerTop, innerBottom, stepH, cx: tr.x + 10, cw: tr.w - 20 };
         }
 
-        // ============================================================
-        // 描画ヘルパー
-        // ============================================================
         const fitCache = new Map();
         function fitText(text, cx, cy, maxW, maxSize, color) {
             if (maxSize < 6 || maxW < 8) return;
@@ -572,22 +609,17 @@
             ctx.fill();
         }
 
-        // ============================================================
-        // 商品の描画（種類ごとに形と色を描き分け）
-        // セル枠 (bx,by,bw,bh) の中に、下揃えで立っているイメージ
-        // ============================================================
         function drawItem(type, bx, by, bw, bh) {
             ctx.save();
-            const pad = Math.max(1.5, bw * 0.05);
+            const pad = Math.max(1, bw * 0.04);
             const iw = bw - pad * 2;
             const ih = (bh - pad * 2) * ITEM_HR[type.id];
             const ix = bx + pad;
             const iy = by + bh - pad - ih;
 
-            // 足元の影
             ctx.fillStyle = 'rgba(0,0,0,0.35)';
             ctx.beginPath();
-            ctx.ellipse(bx + bw / 2, by + bh - pad + 1, iw * 0.46, 2.5, 0, 0, Math.PI * 2);
+            ctx.ellipse(bx + bw / 2, by + bh - pad + 1, iw * 0.46, 2, 0, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.lineJoin = 'round';
@@ -598,7 +630,7 @@
                 const roof = ih * 0.15;
                 ctx.fillStyle = '#f8fafc';
                 ctx.beginPath();
-                ctx.roundRect(ix, iy + roof * 0.7, iw, ih - roof * 0.7, 4);
+                ctx.roundRect(ix, iy + roof * 0.7, iw, ih - roof * 0.7, 3);
                 ctx.fill();
                 ctx.stroke();
 
@@ -643,12 +675,6 @@
                 ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
                 ctx.fillStyle = '#fdba74';
                 ctx.beginPath(); ctx.arc(cx, cy, r * 0.72, 0, Math.PI * 2); ctx.fill();
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(cx - r * 0.72, cy); ctx.lineTo(cx + r * 0.72, cy);
-                ctx.moveTo(cx, cy - r * 0.72); ctx.lineTo(cx, cy + r * 0.72);
-                ctx.stroke();
                 fitText(type.short, cx, iy + ih * 0.82, iw * 0.8, ih * 0.13, '#ffffff');
 
             } else if (type.id === 'cafe') {
@@ -666,7 +692,7 @@
                 ctx.fillStyle = '#f1f5f9';
                 ctx.strokeStyle = '#94a3b8';
                 ctx.beginPath();
-                ctx.roundRect(ix - 0.5, iy, iw + 1, lid, 3);
+                ctx.roundRect(ix - 0.5, iy, iw + 1, lid, 2);
                 ctx.fill();
                 ctx.stroke();
                 fitText(type.short, ix + iw / 2, iy + lid + (ih - lid) * 0.5, iw * 0.76, ih * 0.22, '#ffffff');
@@ -682,7 +708,7 @@
                 const bodyY = iy + capH + neckH;
                 const bodyH = ih - capH - neckH;
                 ctx.fillStyle = type.color;
-                ctx.beginPath(); ctx.roundRect(ix + iw * 0.1, bodyY, iw * 0.8, bodyH, 5); ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.roundRect(ix + iw * 0.1, bodyY, iw * 0.8, bodyH, 4); ctx.fill(); ctx.stroke();
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(ix + iw * 0.1 + 1, bodyY + bodyH * 0.3, iw * 0.8 - 2, bodyH * 0.4);
                 fitText(type.short, ix + iw / 2, bodyY + bodyH * 0.5, iw * 0.7, bodyH * 0.3, type.dark);
@@ -700,13 +726,12 @@
                 ctx.stroke();
 
                 ctx.fillStyle = '#f5f3ff';
-                ctx.beginPath(); ctx.roundRect(ix - 0.5, iy, iw + 1, lid, 3); ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.roundRect(ix - 0.5, iy, iw + 1, lid, 2); ctx.fill(); ctx.stroke();
                 fitText(type.short, ix + iw / 2, iy + lid + (ih - lid) * 0.5, iw * 0.76, ih * 0.24, '#ffffff');
             }
             ctx.restore();
         }
 
-        // 台車の中の小さな番重（色ブロックだけで中身が分かる）
         function drawMiniCrate(crate, x, y, w, h, isTop) {
             ctx.save();
             const hh = h - 2;
@@ -714,22 +739,22 @@
 
             ctx.fillStyle = hasMilk ? '#1e3a8a' : '#334155';
             ctx.strokeStyle = isTop ? '#fbbf24' : (hasMilk ? '#60a5fa' : '#94a3b8');
-            ctx.lineWidth = isTop ? 2.5 : 1.5;
+            ctx.lineWidth = isTop ? 2 : 1.5;
             ctx.beginPath();
-            ctx.roundRect(x, y, w, hh, 5);
+            ctx.roundRect(x, y, w, hh, 4);
             ctx.fill();
             ctx.stroke();
 
-            const showLabel = hh >= 24;
-            const labelW = showLabel ? 34 : 4;
+            const showLabel = hh >= 20;
+            const labelW = showLabel ? 30 : 4;
             if (showLabel) {
-                drawText(`#${crate.id + 1}`, x + 7, y + hh / 2, Math.min(12, hh * 0.45), '#ffffff', 'left');
+                drawText(`#${crate.id + 1}`, x + 5, y + hh / 2, Math.min(11, hh * 0.45), '#ffffff', 'left');
             }
 
             const gx = x + labelW;
-            const gy = y + 3;
-            const gw = w - labelW - 4;
-            const gh = hh - 6;
+            const gy = y + 2;
+            const gw = w - labelW - 3;
+            const gh = hh - 4;
             const cw = gw / GRID_COLS;
             const ch = gh / GRID_ROWS;
 
@@ -752,7 +777,7 @@
                     } else {
                         ctx.fillStyle = cell.type.color;
                         ctx.beginPath();
-                        ctx.roundRect(ix, iy, iw, ih, 1.5);
+                        ctx.roundRect(ix, iy, iw, ih, 1);
                         ctx.fill();
                     }
                 }
@@ -760,153 +785,115 @@
             ctx.restore();
 
             if (isTop) {
-                pill(x + w - 50, y - 8, 46, 15, '#fbbf24');
-                drawText('最上段', x + w - 27, y - 0.5, 10, '#422006', 'center');
+                pill(x + w - 44, y - 7, 40, 13, '#fbbf24');
+                drawText('最上段', x + w - 24, y - 0.5, 9, '#422006', 'center');
             }
         }
 
-        // ============================================================
-        // 背景・凡例
-        // ============================================================
         function renderBackground(layout) {
             ctx.save();
-
-            // 壁
-            const wallGrad = ctx.createLinearGradient(0, 0, 0, 44);
+            const wallGrad = ctx.createLinearGradient(0, 0, 0, 36);
             wallGrad.addColorStop(0, '#1e293b');
             wallGrad.addColorStop(1, '#0f172a');
             ctx.fillStyle = wallGrad;
-            ctx.fillRect(0, 0, W, 44);
+            ctx.fillRect(0, 0, W, 36);
             ctx.strokeStyle = 'rgba(148,163,184,0.25)';
-            ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(0, 44); ctx.lineTo(W, 44); ctx.stroke();
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(0, 36); ctx.lineTo(W, 36); ctx.stroke();
 
-            // 床
-            const floorGrad = ctx.createLinearGradient(0, 44, 0, H);
+            const floorGrad = ctx.createLinearGradient(0, 36, 0, H);
             floorGrad.addColorStop(0, '#1a2233');
             floorGrad.addColorStop(1, '#0d1420');
             ctx.fillStyle = floorGrad;
-            ctx.fillRect(0, 44, W, H - 44);
-
-            ctx.strokeStyle = 'rgba(148,163,184,0.06)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            for (let x = 0; x < W; x += 60) { ctx.moveTo(x, 44); ctx.lineTo(x, H); }
-            for (let y = 44; y < H; y += 60) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
-            ctx.stroke();
+            ctx.fillRect(0, 36, W, H - 36);
             ctx.restore();
 
-            // 凡例
             ctx.save();
-            let x = 14;
-            const compact = W < 820;
+            let x = 12;
+            const compact = W < 750;
             ITEM_LIST.forEach(t => {
-                const bw = 24 * t.sizeW;
-                drawItem(t, x, 4, bw, 36);
-                x += bw + 4;
+                const bw = 20 * t.sizeW;
+                drawItem(t, x, 4, bw, 28);
+                x += bw + 3;
                 if (!compact) {
-                    const label = t.sizeW === 2 ? `${t.full}（2マス）` : t.name;
-                    ctx.font = `bold 11px ${FONT}`;
+                    const label = t.sizeW === 2 ? `${t.full}` : t.name;
+                    ctx.font = `bold 10px ${FONT}`;
                     ctx.fillStyle = '#cbd5e1';
                     ctx.textAlign = 'left';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText(label, x, 23);
-                    x += ctx.measureText(label).width + 16;
+                    ctx.fillText(label, x, 18);
+                    x += ctx.measureText(label).width + 12;
                 } else {
-                    x += 8;
+                    x += 6;
                 }
             });
-            if (W - x > 300) {
-                drawText('⭐ 同じ種類は同じ番重へ！牛乳は最上段が高得点', W - 14, 23, 12, '#fbbf24', 'right');
-            }
             ctx.restore();
 
-            // 番重置き場ゾーン
             const z = layout.floorZone;
-            const pad = 10;
+            const pad = 8;
             ctx.save();
-            ctx.fillStyle = 'rgba(34,197,94,0.04)';
+            ctx.fillStyle = 'rgba(34,197,94,0.03)';
             ctx.strokeStyle = 'rgba(34,197,94,0.3)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([10, 6]);
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([8, 4]);
             ctx.beginPath();
-            ctx.roundRect(z.x - pad, z.y - pad, z.w + pad * 2, z.h + pad * 2, 14);
+            ctx.roundRect(z.x - pad, z.y - pad, z.w + pad * 2, z.h + pad * 2, 12);
             ctx.fill();
             ctx.stroke();
             ctx.restore();
-            drawText('📦 番重置き場（12マス）', z.x - pad + 4, z.y - pad - 9, 11, 'rgba(134,239,172,0.8)', 'left');
+            drawText('📦 床の作業スペース（最大4枠）', z.x - pad + 4, z.y - pad - 8, 10, 'rgba(134,239,172,0.8)', 'left');
 
-            // 台車置き場ゾーン
             const tr = layout.trolley;
             ctx.save();
-            ctx.fillStyle = 'rgba(59,130,246,0.06)';
-            ctx.strokeStyle = 'rgba(59,130,246,0.35)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([8, 6]);
+            ctx.fillStyle = 'rgba(59,130,246,0.05)';
+            ctx.strokeStyle = 'rgba(59,130,246,0.3)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([6, 4]);
             ctx.beginPath();
-            ctx.roundRect(tr.x - 16, tr.y - 22, tr.w + 70, tr.h + 56, 14);
+            ctx.roundRect(tr.x - 12, tr.y - 18, tr.w + 50, tr.h + 40, 12);
             ctx.fill();
             ctx.stroke();
             ctx.restore();
-            drawText('🚚 台車置き場', tr.x - 12, tr.y - 32, 11, 'rgba(147,197,253,0.85)', 'left');
+            drawText('🚚 配送台車', tr.x - 8, tr.y - 26, 10, 'rgba(147,197,253,0.85)', 'left');
         }
 
-        // ============================================================
-        // 台車
-        // ============================================================
         function renderTrolley(tr) {
             const g = trolleyGeom(tr);
             ctx.save();
 
-            // 車輪
-            [tr.x + 30, tr.x + tr.w - 30].forEach(wx => {
+            [tr.x + 24, tr.x + tr.w - 24].forEach(wx => {
                 ctx.fillStyle = '#0b1220';
                 ctx.strokeStyle = '#64748b';
-                ctx.lineWidth = 3;
-                ctx.beginPath(); ctx.arc(wx, tr.y + tr.h + 10, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-                ctx.fillStyle = '#94a3b8';
-                ctx.beginPath(); ctx.arc(wx, tr.y + tr.h + 10, 3.5, 0, Math.PI * 2); ctx.fill();
+                ctx.lineWidth = 2.5;
+                ctx.beginPath(); ctx.arc(wx, tr.y + tr.h + 8, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
             });
 
-            // ハンドル
-            ctx.strokeStyle = '#94a3b8';
-            ctx.lineWidth = 5;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.beginPath();
-            ctx.moveTo(tr.x + tr.w, tr.y + tr.h - 30);
-            ctx.lineTo(tr.x + tr.w + 28, tr.y + tr.h - 30);
-            ctx.lineTo(tr.x + tr.w + 28, tr.y + 24);
-            ctx.stroke();
-
-            // 本体
             ctx.fillStyle = '#111c2e';
             ctx.strokeStyle = '#94a3b8';
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.roundRect(tr.x, tr.y, tr.w, tr.h, 10);
+            ctx.roundRect(tr.x, tr.y, tr.w, tr.h, 8);
             ctx.fill();
             ctx.stroke();
 
-            // 底板
             ctx.fillStyle = '#64748b';
             ctx.beginPath();
-            ctx.roundRect(tr.x - 4, tr.y + tr.h - 14, tr.w + 8, 14, 4);
+            ctx.roundRect(tr.x - 3, tr.y + tr.h - 10, tr.w + 6, 10, 3);
             ctx.fill();
 
-            // タイトル
             ctx.fillStyle = '#1e293b';
             ctx.beginPath();
-            ctx.roundRect(tr.x + 10, tr.y + 8, tr.w - 20, 28, 6);
+            ctx.roundRect(tr.x + 8, tr.y + 6, tr.w - 16, 24, 4);
             ctx.fill();
-            drawText('🚚 配送台車', tr.x + tr.w / 2, tr.y + 22, 13, '#cbd5e1', 'center');
+            drawText('🚚 台車', tr.x + tr.w / 2, tr.y + 18, 11, '#cbd5e1', 'center');
 
             if (g.n === 0 && gameState === 'READY') {
-                drawText('スタートで番重が積まれるよ', tr.x + tr.w / 2, tr.y + tr.h / 2, 12, 'rgba(148,163,184,0.6)', 'center');
+                drawText('スタート待ち', tr.x + tr.w / 2, tr.y + tr.h / 2, 11, 'rgba(148,163,184,0.6)', 'center');
             } else if (g.n === 0 && gameState === 'PLAYING') {
-                drawText('（番重をここへドラッグ）', tr.x + tr.w / 2, tr.y + tr.h / 2, 12, 'rgba(148,163,184,0.6)', 'center');
+                drawText('（ここに番重を戻せる）', tr.x + tr.w / 2, tr.y + tr.h / 2, 10, 'rgba(148,163,184,0.6)', 'center');
             }
 
+            activeTrolleySwapButtons = [];
             for (let idx = 0; idx < g.n; idx++) {
                 const crateId = stackTrolley[idx];
                 if (draggingObject && draggingObject.kind === 'crate' && draggingObject.crateId === crateId) continue;
@@ -915,46 +902,57 @@
                 const appearedAt = crateAppear[crateId];
                 const p = appearedAt === undefined ? 1 : Math.min(1, (performance.now() - appearedAt) / 260);
                 if (p < 1) {
-                    // 上からストンと落ちてくる
                     const ease = 1 - Math.pow(1 - p, 3);
                     ctx.save();
                     ctx.globalAlpha = Math.min(1, p * 3);
-                    ctx.translate(0, -(1 - ease) * 130);
+                    ctx.translate(0, -(1 - ease) * 100);
                     drawMiniCrate(crates[crateId], g.cx, cy, g.cw, g.stepH, isTop);
                     ctx.restore();
                 } else {
                     drawMiniCrate(crates[crateId], g.cx, cy, g.cw, g.stepH, isTop);
                 }
+
+                // 台車に積んである番重の右端に「床の空き枠と入れ替える」ためのボタンを配置
+                const emptySlots = floorCrates.filter(id => id === null).length;
+                if (g.stepH >= 22 && emptySlots > 0 && gameState === 'PLAYING') {
+                    const btnW = 38;
+                    const btnH = Math.min(16, g.stepH - 4);
+                    const btnX = g.cx + g.cw - btnW - 4;
+                    const btnY = cy + (g.stepH - btnH) / 2;
+                    ctx.fillStyle = '#2563eb';
+                    ctx.beginPath();
+                    ctx.roundRect(btnX, btnY, btnW, btnH, 3);
+                    ctx.fill();
+                    drawText('⇄床へ', btnX + btnW / 2, btnY + btnH / 2 + 0.5, 9, '#ffffff', 'center');
+                    activeTrolleySwapButtons.push({ trolleyIdx: idx, crateId: crateId, x: btnX, y: btnY, w: btnW, h: btnH });
+                }
             }
 
             if (hoveredDropZone && hoveredDropZone.type === 'trolley') {
                 ctx.strokeStyle = '#34d399';
-                ctx.lineWidth = 4;
-                ctx.setLineDash([6, 5]);
+                ctx.lineWidth = 3;
+                ctx.setLineDash([5, 4]);
                 ctx.beginPath();
-                ctx.roundRect(tr.x - 6, tr.y - 6, tr.w + 12, tr.h + 12, 14);
+                ctx.roundRect(tr.x - 4, tr.y - 4, tr.w + 8, tr.h + 8, 10);
                 ctx.stroke();
                 ctx.setLineDash([]);
             }
             ctx.restore();
         }
 
-        // ============================================================
-        // 床の番重
-        // ============================================================
         function drawEmptySlot(slot, hover) {
             ctx.save();
             ctx.fillStyle = hover ? 'rgba(52,211,153,0.16)' : 'rgba(34,197,94,0.03)';
             ctx.strokeStyle = hover ? '#34d399' : 'rgba(34,197,94,0.22)';
-            ctx.lineWidth = hover ? 3 : 1.5;
-            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = hover ? 2.5 : 1.5;
+            ctx.setLineDash([4, 4]);
             ctx.beginPath();
-            ctx.roundRect(slot.x, slot.y, slot.w, slot.h, 12);
+            ctx.roundRect(slot.x, slot.y, slot.w, slot.h, 10);
             ctx.fill();
             ctx.stroke();
             ctx.setLineDash([]);
             ctx.restore();
-            drawText('空き', slot.x + slot.w / 2, slot.y + slot.h / 2, 13, hover ? '#6ee7b7' : 'rgba(134,239,172,0.25)', 'center');
+            drawText('空き枠', slot.x + slot.w / 2, slot.y + slot.h / 2, 12, hover ? '#6ee7b7' : 'rgba(134,239,172,0.3)', 'center');
         }
 
         function drawFloorCrate(slot, crateId) {
@@ -964,70 +962,62 @@
             const inner = crateInner(slot);
             const z = hoveredDropZone;
             const isItemTarget = z && z.type === 'itemSlot' && z.crateId === crateId;
+            const isSwapTarget = z && z.type === 'floor' && z.swap && floorCrates[z.index] === crateId;
 
             ctx.save();
-
-            // 本体（牛乳が入っている番重は青く縁取り）
-            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowBlur = 14;
-            ctx.shadowOffsetY = 5;
+            ctx.shadowColor = 'rgba(0,0,0,0.4)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 4;
             const grad = ctx.createLinearGradient(0, slot.y, 0, slot.y + slot.h);
             grad.addColorStop(0, milk > 0 ? '#2f4f86' : '#52627a');
             grad.addColorStop(1, milk > 0 ? '#1e3a6e' : '#3b475b');
             ctx.fillStyle = grad;
-            ctx.strokeStyle = isItemTarget ? '#34d399' : (milk > 0 ? '#60a5fa' : '#94a3b8');
-            ctx.lineWidth = isItemTarget ? 4 : 3;
+            ctx.strokeStyle = (isItemTarget || isSwapTarget) ? '#34d399' : (milk > 0 ? '#60a5fa' : '#94a3b8');
+            ctx.lineWidth = (isItemTarget || isSwapTarget) ? 3 : 2;
             ctx.beginPath();
-            ctx.roundRect(slot.x, slot.y, slot.w, slot.h, 12);
+            ctx.roundRect(slot.x, slot.y, slot.w, slot.h, 10);
             ctx.fill();
             ctx.stroke();
             ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            ctx.shadowOffsetY = 0;
 
-            // ヘッダー（ここをつかんで番重ごと移動）
             ctx.fillStyle = milk > 0 ? '#1d4ed8' : '#475569';
             ctx.beginPath();
-            ctx.roundRect(slot.x + 2, slot.y + 2, slot.w - 4, HEADER_H - 2, [10, 10, 0, 0]);
+            ctx.roundRect(slot.x + 1.5, slot.y + 1.5, slot.w - 3, HEADER_H - 1.5, [8, 8, 0, 0]);
             ctx.fill();
-            drawText(slot.w < 190 ? `#${crateId + 1}` : `番重 #${crateId + 1}`, slot.x + 12, slot.y + HEADER_H / 2 + 1, 12, '#ffffff', 'left');
+            if (isSwapTarget) drawText('⇄ 入れ替え', slot.x + slot.w / 2, slot.y + slot.h - 12, 11, '#6ee7b7', 'center');
+            drawText(`番重 #${crateId + 1}`, slot.x + 10, slot.y + HEADER_H / 2 + 1, 11, '#ffffff', 'left');
 
+            const onTrolley = stackTrolley.length;
             if (empty) {
-                const btnW = Math.min(104, slot.w - 70);
-                const btnH = 22;
-                const btnX = slot.x + slot.w - btnW - 6;
-                const btnY = slot.y + 5;
+                const btnW = Math.min(88, slot.w - 55);
+                const btnH = 20;
+                const btnX = slot.x + slot.w - btnW - 5;
+                const btnY = slot.y + 4;
                 ctx.fillStyle = '#e11d48';
                 ctx.beginPath();
-                ctx.roundRect(btnX, btnY, btnW, btnH, 6);
+                ctx.roundRect(btnX, btnY, btnW, btnH, 5);
                 ctx.fill();
-                drawText('🗑️ もう使わない', btnX + btnW / 2, btnY + btnH / 2 + 1, 10, '#ffffff', 'center');
+                drawText('🗑️ 撤去', btnX + btnW / 2, btnY + btnH / 2 + 1, 10, '#ffffff', 'center');
                 activeRemoveButtons.push({ crateId: crateId, x: btnX, y: btnY, w: btnW, h: btnH });
+            } else if (onTrolley > 0) {
+                const btnW = Math.min(108, slot.w - 45);
+                const btnH = 20;
+                const btnX = slot.x + slot.w - btnW - 5;
+                const btnY = slot.y + 4;
+                ctx.fillStyle = '#0d9488';
+                ctx.beginPath();
+                ctx.roundRect(btnX, btnY, btnW, btnH, 5);
+                ctx.fill();
+                drawText('⇄ 台車と入替', btnX + btnW / 2, btnY + btnH / 2 + 1, 10, '#ffffff', 'center');
+                activeSwapButtons.push({ crateId: crateId, slotIdx: floorCrates.indexOf(crateId), x: btnX, y: btnY, w: btnW, h: btnH });
             } else if (milk > 0) {
-                pill(slot.x + slot.w - 74, slot.y + 6, 66, 19, '#f8fafc');
-                drawText(`牛乳 ×${milk}`, slot.x + slot.w - 41, slot.y + 16, 11, '#1d4ed8', 'center');
+                pill(slot.x + slot.w - 62, slot.y + 5, 56, 17, '#f8fafc');
+                drawText(`牛乳 ×${milk}`, slot.x + slot.w - 34, slot.y + 13.5, 10, '#1d4ed8', 'center');
             }
 
-            // 入っている種類のドット（混ざり具合が一目で分かる）
-            if (!empty && slot.w >= 200) {
-                let dx = slot.x + slot.w - (milk > 0 ? 88 : 18);
-                ITEM_LIST.slice().reverse().forEach(t => {
-                    if (countType(crate, t.id) === 0) return;
-                    ctx.fillStyle = t.color;
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 1.5;
-                    ctx.beginPath();
-                    ctx.arc(dx, slot.y + HEADER_H / 2 + 1, 5, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.stroke();
-                    dx -= 14;
-                });
-            }
-
-            // 内側
             ctx.fillStyle = '#0b1220';
             ctx.beginPath();
-            ctx.roundRect(inner.x - 2, inner.y - 2, inner.w + 4, inner.h + 4, 6);
+            ctx.roundRect(inner.x - 1.5, inner.y - 1.5, inner.w + 3, inner.h + 3, 5);
             ctx.fill();
 
             for (let r = 0; r < GRID_ROWS; r++) {
@@ -1035,36 +1025,44 @@
                     const cx = inner.x + c * inner.cw;
                     const cy = inner.y + r * inner.ch;
                     ctx.fillStyle = 'rgba(255,255,255,0.025)';
-                    ctx.fillRect(cx + 1, cy + 1, inner.cw - 2, inner.ch - 2);
-                    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+                    ctx.fillRect(cx + 0.5, cy + 0.5, inner.cw - 1, inner.ch - 1);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
                     ctx.lineWidth = 1;
-                    ctx.strokeRect(cx + 1, cy + 1, inner.cw - 2, inner.ch - 2);
+                    ctx.strokeRect(cx + 0.5, cy + 0.5, inner.cw - 1, inner.ch - 1);
                 }
             }
 
-            // ドロップ先ハイライト
             if (isItemTarget) {
                 for (let o = 0; o < z.spanW; o++) {
                     const cc = z.c + o;
                     if (cc < 0 || cc >= GRID_COLS) continue;
-                    ctx.fillStyle = z.valid ? 'rgba(52,211,153,0.4)' : 'rgba(239,68,68,0.45)';
-                    ctx.fillRect(inner.x + cc * inner.cw + 1, inner.y + z.r * inner.ch + 1, inner.cw - 2, inner.ch - 2);
+                    ctx.fillStyle = z.valid ? 'rgba(52,211,153,0.35)' : 'rgba(239,68,68,0.4)';
+                    ctx.fillRect(inner.x + cc * inner.cw + 0.5, inner.y + z.r * inner.ch + 0.5, inner.cw - 1, inner.ch - 1);
                 }
             }
 
-            // 商品
             const dragItemId = (draggingObject && draggingObject.kind === 'item') ? draggingObject.item.id : null;
+            const dragType = (draggingObject && draggingObject.kind === 'item') ? draggingObject.item.type.id : null;
             for (let r = 0; r < GRID_ROWS; r++) {
                 for (let c = 0; c < GRID_COLS; c++) {
                     const cell = crate.grid[r][c];
                     if (!cell || !cell.type) continue;
                     if (cell.id === dragItemId) continue;
+                    if (dragType && cell.type.id === dragType) {
+                        ctx.save();
+                        ctx.strokeStyle = 'rgba(250,204,21,0.95)';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.roundRect(inner.x + c * inner.cw + 1, inner.y + r * inner.ch + 1, cell.type.sizeW * inner.cw - 2, inner.ch - 2, 4);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
                     drawItem(cell.type, inner.x + c * inner.cw, inner.y + r * inner.ch, cell.type.sizeW * inner.cw, inner.ch);
                 }
             }
 
             if (empty) {
-                drawText('からっぽ', inner.x + inner.w / 2, inner.y + inner.h / 2, 16, 'rgba(148,163,184,0.45)', 'center');
+                drawText('からっぽ', inner.x + inner.w / 2, inner.y + inner.h / 2, 14, 'rgba(148,163,184,0.4)', 'center');
             }
 
             ctx.restore();
@@ -1072,6 +1070,7 @@
 
         function renderFloorCrates(slots) {
             activeRemoveButtons = [];
+            activeSwapButtons = [];
             slots.forEach((slot, idx) => {
                 const crateId = floorCrates[idx];
                 const isHover = hoveredDropZone && hoveredDropZone.type === 'floor' && hoveredDropZone.index === idx;
@@ -1087,38 +1086,32 @@
             });
         }
 
-        // ============================================================
-        // ドラッグ中の描画
-        // ============================================================
         function renderDraggingObject() {
             if (!draggingObject) return;
             ctx.save();
             if (draggingObject.kind === 'crate') {
                 const crate = crates[draggingObject.crateId];
-                const w = 260, h = 58;
-                ctx.shadowColor = 'rgba(0,0,0,0.6)';
-                ctx.shadowBlur = 16;
-                ctx.shadowOffsetY = 8;
+                const w = 220, h = 50;
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 12;
+                ctx.shadowOffsetY = 6;
                 ctx.globalAlpha = 0.95;
                 drawMiniCrate(crate, draggingObject.currentX - w / 2, draggingObject.currentY - h / 2, w, h, false);
             } else {
                 const type = draggingObject.item.type;
-                const bw = 50 * type.sizeW;
-                const bh = 84;
-                ctx.shadowColor = 'rgba(0,0,0,0.6)';
-                ctx.shadowBlur = 14;
-                ctx.shadowOffsetY = 8;
-                drawItem(type, draggingObject.currentX - bw / 2, draggingObject.currentY - bh / 2 - 6, bw, bh);
+                const bw = 42 * type.sizeW;
+                const bh = 70;
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetY = 6;
+                drawItem(type, draggingObject.currentX - bw / 2, draggingObject.currentY - bh / 2 - 5, bw, bh);
             }
             ctx.restore();
         }
 
-        // ============================================================
-        // 3・2・1・スタート演出
-        // ============================================================
         function startCountdown() {
             if (gameState !== 'READY') return;
-            resizeCanvas();                 // レイアウトが落ち着いた状態で測り直す
+            resizeCanvas();
             gameState = 'COUNTDOWN';
             const ids = pendingIds.slice();
             const n = ids.length;
@@ -1126,7 +1119,7 @@
                 t0: performance.now(),
                 ids: ids,
                 total: n,
-                iv: Math.min(380, 2600 / Math.max(1, n)),   // 番重を積む間隔(ms)
+                iv: Math.min(350, 2400 / Math.max(1, n)),
                 loaded: 0,
                 lastTick: -1,
                 token: roundToken
@@ -1159,8 +1152,8 @@
                 if (t >= 3000) {
                     while (cd.loaded < cd.total) stackTrolley.push(cd.ids[cd.loaded++]);
                     gameState = 'PLAYING';
-                    goFlashUntil = now + 800;
-                    ensureTimer();           // タイマーはスタートと同時に動き出す
+                    goFlashUntil = now + 700;
+                    ensureTimer();
                     sfx.playGo();
                     updatePhaseUI();
                 }
@@ -1183,14 +1176,14 @@
             } else if (now < goFlashUntil) {
                 text = 'スタート！';
                 color = '#34d399';
-                phase = 1 - (goFlashUntil - now) / 800;
+                phase = 1 - (goFlashUntil - now) / 700;
             }
             if (!text) return;
 
             const pop = Math.min(1, phase * 4);
-            const scale = 1.7 - 0.7 * (1 - Math.pow(1 - pop, 3));
+            const scale = 1.6 - 0.6 * (1 - Math.pow(1 - pop, 3));
             const alpha = phase > 0.75 ? 1 - ((phase - 0.75) / 0.25) * 0.8 : 1;
-            const base = text.length > 1 ? Math.min(W * 0.1, 96) : Math.min(H * 0.28, 170);
+            const base = text.length > 1 ? Math.min(W * 0.08, 80) : Math.min(H * 0.25, 140);
 
             ctx.save();
             ctx.globalAlpha = alpha;
@@ -1200,7 +1193,7 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.lineJoin = 'round';
-            ctx.lineWidth = base * 0.12;
+            ctx.lineWidth = base * 0.1;
             ctx.strokeStyle = 'rgba(2,6,23,0.9)';
             ctx.strokeText(text, 0, 0);
             ctx.fillStyle = color;
@@ -1219,9 +1212,6 @@
             renderCountdown(performance.now());
         }
 
-        // ============================================================
-        // 入力
-        // ============================================================
         function getPointerPos(e) {
             const rect = canvas.getBoundingClientRect();
             return { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -1233,9 +1223,10 @@
             const pos = getPointerPos(e);
             const layout = getLayout();
 
-            // 撤去ボタン
+            // 撤去ボタンの判定
             for (const btn of activeRemoveButtons) {
                 if (pos.x >= btn.x && pos.x <= btn.x + btn.w && pos.y >= btn.y && pos.y <= btn.y + btn.h) {
+                    pushUndo();
                     const removeId = btn.crateId;
                     for (let i = 0; i < floorCrates.length; i++) {
                         if (floorCrates[i] === removeId) floorCrates[i] = null;
@@ -1251,7 +1242,47 @@
                 }
             }
 
-            // 台車の最上段
+            // 床の「⇄ 台車と入替」ボタンの判定
+            for (const btn of activeSwapButtons) {
+                if (pos.x >= btn.x && pos.x <= btn.x + btn.w && pos.y >= btn.y && pos.y <= btn.y + btn.h) {
+                    pushUndo();
+                    const floorIdx = btn.slotIdx;
+                    const floorCrateId = floorCrates[floorIdx];
+                    const topCrateId = stackTrolley.pop();
+                    stackTrolley.push(floorCrateId);
+                    floorCrates[floorIdx] = topCrateId;
+                    hasMoved = true;
+                    ensureTimer();
+                    sfx.playCrateMove();
+                    updatePhaseUI();
+                    render();
+                    return;
+                }
+            }
+
+            // 台車の「⇄床へ」ボタンの判定（台車の中の任意の箱を、床の空き枠と直接入れ替える）
+            for (const btn of activeTrolleySwapButtons) {
+                if (pos.x >= btn.x && pos.x <= btn.x + btn.w && pos.y >= btn.y && pos.y <= btn.y + btn.h) {
+                    const emptySlotIdx = floorCrates.findIndex(id => id === null);
+                    if (emptySlotIdx !== -1) {
+                        pushUndo();
+                        const trolleyCrateId = btn.crateId;
+                        // stackTrolley配列から該当の箱を抜き出す
+                        const idxInStack = stackTrolley.indexOf(trolleyCrateId);
+                        if (idxInStack !== -1) {
+                            stackTrolley.splice(idxInStack, 1);
+                            floorCrates[emptySlotIdx] = trolleyCrateId;
+                            hasMoved = true;
+                            ensureTimer();
+                            sfx.playCrateMove();
+                            updatePhaseUI();
+                            render();
+                        }
+                    }
+                    return;
+                }
+            }
+
             const g = trolleyGeom(layout.trolley);
             if (g.n > 0) {
                 const cy = g.innerBottom - g.n * g.stepH;
@@ -1260,14 +1291,14 @@
                         kind: 'crate',
                         crateId: stackTrolley[g.n - 1],
                         source: 'trolley',
+                        offY: e.pointerType === 'touch' ? 28 : 0,
                         currentX: pos.x,
-                        currentY: pos.y
+                        currentY: pos.y - (e.pointerType === 'touch' ? 28 : 0)
                     };
                     sfx.playCrateMove();
                 }
             }
 
-            // 床の番重・商品
             if (!draggingObject) {
                 for (let i = 0; i < layout.floorSlots.length; i++) {
                     const slot = layout.floorSlots[i];
@@ -1281,8 +1312,9 @@
                             crateId: crateId,
                             source: 'floor',
                             sourceSlotIdx: i,
+                            offY: e.pointerType === 'touch' ? 28 : 0,
                             currentX: pos.x,
-                            currentY: pos.y
+                            currentY: pos.y - (e.pointerType === 'touch' ? 28 : 0)
                         };
                         sfx.playCrateMove();
                         break;
@@ -1299,8 +1331,9 @@
                                 kind: 'item',
                                 crateId: crateId,
                                 item: item,
+                                offY: e.pointerType === 'touch' ? 40 : 0,
                                 currentX: pos.x,
-                                currentY: pos.y
+                                currentY: pos.y - (e.pointerType === 'touch' ? 40 : 0)
                             };
                             sfx.playItemDrop();
                         }
@@ -1310,7 +1343,7 @@
             }
 
             if (draggingObject) {
-                try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+                try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
                 canvas.style.cursor = 'grabbing';
                 ensureTimer();
                 render();
@@ -1320,6 +1353,7 @@
         canvas.addEventListener('pointermove', (e) => {
             if (!draggingObject) return;
             const pos = getPointerPos(e);
+            pos.y -= draggingObject.offY || 0;
             const layout = getLayout();
 
             hoveredDropZone = null;
@@ -1329,14 +1363,24 @@
             if (draggingObject.kind === 'crate') {
                 for (let i = 0; i < layout.floorSlots.length; i++) {
                     const s = layout.floorSlots[i];
-                    if (floorCrates[i] === null && pos.x >= s.x && pos.x <= s.x + s.w && pos.y >= s.y && pos.y <= s.y + s.h) {
-                        hoveredDropZone = { type: 'floor', index: i };
+                    if (pos.x >= s.x && pos.x <= s.x + s.w && pos.y >= s.y && pos.y <= s.y + s.h) {
+                        if (draggingObject.source === 'floor' && draggingObject.sourceSlotIdx === i) break;
+                        if (floorCrates[i] === null) {
+                            hoveredDropZone = { type: 'floor', index: i };
+                        } else {
+                            hoveredDropZone = { type: 'floor', index: i, swap: true };
+                        }
                         break;
                     }
                 }
-                const tr = layout.trolley;
-                if (pos.x >= tr.x - 12 && pos.x <= tr.x + tr.w + 12 && pos.y >= tr.y - 12 && pos.y <= tr.y + tr.h + 12) {
-                    hoveredDropZone = { type: 'trolley' };
+
+                if (!hoveredDropZone) {
+                    const tr = layout.trolley;
+                    if (pos.x >= tr.x - 10 && pos.x <= tr.x + tr.w + 10 && pos.y >= tr.y - 10 && pos.y <= tr.y + tr.h + 10) {
+                        if (draggingObject.source === 'floor') {
+                            hoveredDropZone = { type: 'trolley' };
+                        }
+                    }
                 }
             } else {
                 const spanW = draggingObject.item.type.sizeW;
@@ -1347,7 +1391,6 @@
                     const inner = crateInner(slot);
                     if (pos.x < inner.x || pos.x > inner.x + inner.w || pos.y < inner.y || pos.y > inner.y + inner.h) continue;
 
-                    // カーソルが商品の中心になるように置き位置を決める
                     let c = Math.round((pos.x - inner.x) / inner.cw - spanW / 2);
                     c = Math.max(0, Math.min(GRID_COLS - spanW, c));
                     const r = Math.min(GRID_ROWS - 1, Math.floor((pos.y - inner.y) / inner.ch));
@@ -1367,24 +1410,31 @@
             if (!cancel) {
                 if (d.kind === 'crate') {
                     if (z && z.type === 'floor') {
+                        pushUndo();
+                        const other = floorCrates[z.index];
                         if (d.source === 'trolley') {
                             stackTrolley.pop();
+                            if (other !== null) stackTrolley.push(other);
                         } else {
-                            floorCrates[d.sourceSlotIdx] = null;
+                            floorCrates[d.sourceSlotIdx] = other;
                         }
                         floorCrates[z.index] = d.crateId;
                         hasMoved = true;
+                        buzz(12);
                         sfx.playCrateMove();
-                    } else if (z && z.type === 'trolley' && d.source === 'floor') {
-                        floorCrates[d.sourceSlotIdx] = null;
+                    } else if (z && z.type === 'trolley') {
+                        pushUndo();
+                        if (d.source === 'floor') floorCrates[d.sourceSlotIdx] = null;
                         stackTrolley.push(d.crateId);
                         hasMoved = true;
                         sfx.playCrateMove();
                     }
                 } else if (z && z.type === 'itemSlot' && z.valid) {
+                    pushUndo();
                     const src = crates[d.crateId];
                     const dst = crates[z.crateId];
                     removeItem(src, d.item);
+                    buzz(8);
                     placeItem(dst, z.r, z.c, d.item);
                     hasMoved = true;
                     sfx.playItemDrop();
@@ -1401,9 +1451,6 @@
         canvas.addEventListener('pointerup', () => finishDrag(false));
         canvas.addEventListener('pointercancel', () => finishDrag(true));
 
-        // ============================================================
-        // 審査
-        // ============================================================
         function showResult(icon, title, html, btnText) {
             modalIcon.textContent = icon;
             modalTitle.textContent = title;
@@ -1412,9 +1459,6 @@
             modalOverlay.classList.remove('hidden');
         }
 
-        // ============================================================
-        // 採点: 同じ種類のまとまり60 + 牛乳が最上段30 + 片付け10 = 100点
-        // ============================================================
         const PASS_SCORE = 60;
         const CRATE_CELLS = GRID_ROWS * GRID_COLS;
 
@@ -1427,11 +1471,8 @@
             const n = stackTrolley.length;
             const perType = [];
             let weightSum = 0, concSum = 0;
-            // 離れるごとの減点幅。基本25%、箱数が少ないときは大きくして「何もしなくても合格」を防ぐ
             const stepFor = (room) => Math.max(0.25, 0.9 / Math.max(1, room));
 
-            // 種類ごと: 本来必要な箱数(k)に対して、何段にまたがって散らばっているか(span)
-            // 余分に離れるごとに減点（隣の段ならほぼ高得点）
             ITEM_LIST.forEach(type => {
                 let cells = 0;
                 const idxs = [];
@@ -1444,15 +1485,19 @@
                 });
                 if (cells === 0) return;
                 const k = Math.ceil(cells / CRATE_CELLS);
+                const m = idxs.length;
                 const span = idxs[idxs.length - 1] - idxs[0] + 1;
-                const score = Math.max(0, 1 - stepFor(n - k) * Math.max(0, span - k));
-                perType.push({ type, cells, k, span, score, tiers: idxs.map(i => n - i).reverse() });
+                // extra: 1箱にまとめられる/最小の箱数で収まるのに余計に分けた箱数（探す手間）
+                // gap: 使っている箱どうしの間に挟まっている他の箱の数（隣り合っていない）
+                const extra = Math.max(0, m - k);
+                const gap = Math.max(0, span - m);
+                const score = Math.max(0, 1 - 0.4 * extra - stepFor(n - m) * gap);
+                perType.push({ type, cells, k, m, span, extra, gap, score, tiers: idxs.map(i => n - i).reverse() });
                 weightSum += cells;
                 concSum += score * cells;
             });
             const conc = weightSum ? concSum / weightSum : 1;
 
-            // 牛乳: 最上段なら満点、1段下がるごとに減点
             let milkSum = 0, milkTotal = 0;
             const milkTiers = [];
             stackTrolley.forEach((cid, idx) => {
@@ -1466,7 +1511,6 @@
             milkTiers.sort((x, y) => x - y);
             const milkTop = milkTotal ? milkSum / milkTotal : 1;
 
-            // 片付け: 空の番重を台車に残すと1箱ごとに50%減点
             const empties = stackTrolley.filter(cid => isCrateEmpty(crates[cid])).length;
             const clean = Math.max(0, 1 - 0.5 * empties);
 
@@ -1491,38 +1535,40 @@
 
             const hints = [];
             const worst = ev.perType.slice().sort((x, y) => x.score - y.score)[0];
-            if (worst && worst.score < 1) {
-                hints.push(`「${worst.type.name}」が離れた段に散らばっているよ。近い段にまとめよう。`);
-            }
+            ev.perType.filter(p => p.score < 1).sort((x, y) => x.score - y.score).slice(0, 2).forEach(p => {
+                if (p.extra > 0) {
+                    hints.push(`「${p.type.name}」は${p.k}箱にまとめられるのに${p.m}箱に分かれています。`);
+                }
+                if (p.gap > 0) {
+                    hints.push(`「${p.type.name}」の番重の間に別の番重が挟まっています。分けるなら隣り合う段に。`);
+                }
+            });
             if (ev.milkTop < 1) {
-                hints.push(`牛乳は最上段にあると高得点（今は${tierText(ev.milkTiers)}）。`);
+                hints.push(`牛乳は最上段にあると高得点です（現在は${tierText(ev.milkTiers)}）。`);
             }
             if (ev.empties > 0) {
-                hints.push(`空の番重が台車に ${ev.empties}箱 残っているよ。「もう使わない」で撤去しよう。`);
+                hints.push(`空の番重が台車に残っています（${ev.empties}箱）。`);
             }
             const hintHtml = hints.length
                 ? `<ul class="list-disc list-inside text-amber-200 text-[11px] space-y-0.5 pt-1">${hints.map(h => `<li>${h}</li>`).join('')}</ul>`
-                : `<p class="text-emerald-300 text-xs font-bold text-center pt-1">パーフェクト！ 品出ししやすい完璧な積み方です！</p>`;
+                : `<p class="text-emerald-300 text-xs font-bold text-center pt-1">完璧な仕分けです！</p>`;
 
             return `
                 <div class="text-center space-y-0.5">
                     <div class="text-5xl font-black text-amber-300 leading-none">${ev.rank}</div>
                     <div class="text-lg font-bold text-white">${ev.total}点 <span class="text-xs font-normal text-slate-400">/ 100（合格 ${PASS_SCORE}点）</span></div>
-                    <div class="text-xs text-slate-400">記録 <span class="text-yellow-300 font-mono">${timeText}</span></div>
+                    <div class="text-xs text-slate-400">タイム <span class="text-yellow-300 font-mono">${timeText}</span></div>
                 </div>
                 <div class="space-y-1 text-xs border-t border-slate-800 pt-2">
-                    <div class="flex justify-between"><span>同じ種類のまとまり</span><span class="font-bold">${ev.concPts} / 60</span></div>
+                    <div class="flex justify-between"><span>種類のまとまり</span><span class="font-bold">${ev.concPts} / 60</span></div>
                     <div class="flex justify-between"><span>牛乳が最上段</span><span class="font-bold">${ev.milkPts} / 30</span></div>
-                    <div class="flex justify-between"><span>片付け（空の番重）</span><span class="font-bold">${ev.cleanPts} / 10</span></div>
+                    <div class="flex justify-between"><span>片付け</span><span class="font-bold">${ev.cleanPts} / 10</span></div>
                 </div>
                 <div class="space-y-1 text-xs border-t border-slate-800 pt-2">${rows}</div>
                 ${hintHtml}
             `;
         }
 
-        // ============================================================
-        // 総合結果（ステージ1〜4の記録をまとめる）
-        // ============================================================
         function fmtMs(ms) {
             const mins = String(Math.floor(ms / 60000)).padStart(2, '0');
             const secs = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0');
@@ -1539,26 +1585,15 @@
             const totalMs = done.reduce((a, r) => a + r.ms, 0);
             const avg = done.length ? Math.round(done.reduce((a, r) => a + r.score, 0) / done.length) : 0;
             const rank = rankFor(avg);
-            const comment = {
-                S: '神仕分け師！ 現場にほしい人材です！',
-                A: 'めちゃくちゃ上手！ 品出しがはかどります！',
-                B: 'いい感じ！ あと少しで完璧です！',
-                C: '全ステージ合格！ まだまだ伸びしろたっぷり！',
-                D: ''
-            }[rank];
 
             const rows = STAGES.map((st, i) => {
                 const r = stageResults[i];
                 if (!r) return '';
-                const sub = `${st.crates}箱` + (r.tries > 1 ? ` ・ やり直し${r.tries - 1}回` : '');
                 return `<div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-800 last:border-0">
-                    <div class="w-28 shrink-0 leading-tight">
-                        <div class="text-slate-200 font-bold">STAGE ${st.stage}</div>
-                        <div class="text-slate-500 text-[10px]">${sub}</div>
-                    </div>
-                    <span class="font-black text-amber-300 text-base w-5 text-center">${r.rank}</span>
-                    <span class="font-bold w-10 text-right">${r.score}点</span>
-                    <span class="font-mono text-emerald-300 w-20 text-right">${r.timeText}</span>
+                    <div class="text-slate-200 font-bold">STAGE ${st.stage} (${st.crates}箱)</div>
+                    <span class="font-black text-amber-300 text-base">${r.rank}</span>
+                    <span class="font-bold">${r.score}点</span>
+                    <span class="font-mono text-emerald-300">${r.timeText}</span>
                 </div>`;
             }).join('');
 
@@ -1568,12 +1603,10 @@
                     <div class="text-5xl font-black text-amber-300 leading-none">${rank}</div>
                     <div class="text-lg font-bold text-white">平均 ${avg}点</div>
                     <div class="text-xs text-slate-400">合計タイム <span class="text-yellow-300 font-mono text-base">${fmtMs(totalMs)}</span></div>
-                    <div class="text-xs text-emerald-300 font-bold pt-1">${comment}</div>
                 </div>
                 <div class="text-xs border-t border-slate-800 pt-1">${rows}</div>
-                <p class="text-[10px] text-slate-500 text-center">※ タイムは、各ステージで合格したときの記録の合計です</p>
             `;
-            showResult('👑', '全ステージ制覇！', html, 'もう一度最初からやる');
+            showResult('👑', '全ステージ制覇！', html, 'もう一度最初から');
         }
 
         function restartRun() {
@@ -1592,15 +1625,13 @@
             const timeText = timerDisplay.textContent;
 
             if (stackTrolley.length === 0) {
-                showResult('⚠️', '❌ 台車に番重がありません！',
-                    '台車に番重がひとつも戻されていません。<br>もう一度やり直してください。',
-                    'やり直す');
+                showResult('⚠️', '❌ 台車に番重がありません！', '台車に番重が戻されていません。', 'やり直す');
                 return;
             }
 
             const ev = evaluateLayout();
             stageTries[currentStageIdx]++;
-            const body = buildScoreHtml(ev, timeText);
+            let body = buildScoreHtml(ev, timeText);
             const isLastStage = currentStageIdx >= STAGES.length - 1;
 
             if (ev.total >= PASS_SCORE) {
@@ -1610,14 +1641,19 @@
                     tries: stageTries[currentStageIdx]
                 };
                 sfx.playVictory();
+                const bst = saveBest(currentStageIdx + 1, elapsedTime, ev.total);
+                const bestLine = bst.isNew
+                    ? `<p class="text-center text-amber-300 text-xs font-bold">🏅 ベスト更新！${bst.prev ? '（前回 ' + fmtMs(bst.prev.ms) + ' / ' + bst.prev.score + '点）' : ''}</p>`
+                    : (bst.prev ? `<p class="text-center text-slate-400 text-[11px]">ベスト ${fmtMs(bst.prev.ms)} / ${bst.prev.score}点</p>` : '');
+                body += bestLine;
                 if (!isLastStage) {
-                    showResult('🏆', `🎉 STAGE ${currentStageIdx + 1} 合格！`, body, '次のステージへ進む');
+                    showResult('🏆', `🎉 STAGE ${currentStageIdx + 1} 合格！`, body, '次のステージへ');
                 } else {
                     summaryPending = true;
                     showResult('🏆', `🎉 STAGE ${currentStageIdx + 1} 合格！`, body, '総合結果を見る');
                 }
             } else {
-                showResult('⚠️', '合格ライン未達', body, 'もう一度やり直す');
+                showResult('⚠️', '合格ライン未達', body, 'やり直す');
             }
         }
 
@@ -1625,6 +1661,8 @@
             sfx.init();
             if (gameState === 'PLAYING' && !actionBtn.disabled) runInspection();
         });
+
+        undoBtn.addEventListener('click', () => { sfx.init(); undo(); });
 
         resetBtn.addEventListener('click', () => {
             sfx.init();
@@ -1637,7 +1675,7 @@
         modalBtn.addEventListener('click', () => {
             sfx.init();
             if (summaryShown) { restartRun(); return; }
-            if (summaryPending) {                 // 最終ステージ合格 → 総合結果を表示
+            if (summaryPending) {
                 summaryPending = false;
                 summaryShown = true;
                 showSummary();
@@ -1653,9 +1691,6 @@
             startCountdown();
         });
 
-        // ============================================================
-        // リサイズ（変形行列は毎回リセット）
-        // ============================================================
         function resizeCanvas() {
             const rect = canvas.getBoundingClientRect();
             const dpr = window.devicePixelRatio || 1;
@@ -1668,11 +1703,10 @@
         }
         window.addEventListener('resize', resizeCanvas);
         window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
-        // Tailwind(CDN)の適用などでcanvasの大きさが後から変わっても追従する
         if (window.ResizeObserver) new ResizeObserver(() => resizeCanvas()).observe(canvas);
 
         window.onload = () => {
-            initGame();          // 先に状態を作ってから描画する（描画エラーで初期化が止まらないように）
+            initGame();
             resizeCanvas();
             setTimeout(resizeCanvas, 300);
         };
