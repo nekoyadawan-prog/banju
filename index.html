@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>番重ソート RTA - コンビニ仕分け＆積み直しタイムアタック</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -17,8 +17,27 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            width: 100vw;
+            height: 100dvh;
+            height: var(--app-h, 100dvh);
+            width: 100%;
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
             overflow: hidden;
+        }
+        footer button { white-space: nowrap; flex-shrink: 0; }
+        /* 横持ちスマホなど、高さが足りないときはヘッダー/フッターを圧縮して盤面を広げる */
+        @media (max-height: 520px) {
+            header { padding-top: 2px !important; padding-bottom: 2px !important; }
+            header .text-2xl { font-size: 1.15rem !important; line-height: 1 !important; }
+            header h1 { font-size: 0.9rem !important; }
+            header .mt-1 { margin-top: 0 !important; }
+            header .bg-slate-950 { padding: 1px 10px !important; }
+            #timer-display { font-size: 1.1rem !important; }
+            #phase-instruction { padding-top: 2px !important; padding-bottom: 2px !important; font-size: 11px !important; }
+            footer { padding-top: 4px !important; padding-bottom: 4px !important; }
+            footer button { padding: 6px 12px !important; }
+            #phase-instruction { display: none !important; }
+            #footer-hint { display: block !important; font-size: 11px !important; color: #fcd34d !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 0%; margin-right: 8px; }
         }
         canvas {
             touch-action: none;
@@ -28,7 +47,7 @@
         #gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
     </style>
 </head>
-<body class="flex flex-col h-screen w-screen overflow-hidden">
+<body class="flex flex-col overflow-hidden">
 
     <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-2 flex justify-between items-center shadow-lg z-10 shrink-0">
         <div class="flex items-center space-x-3">
@@ -44,6 +63,7 @@
         </div>
 
         <div class="flex items-center space-x-3">
+            <button id="fs-btn" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs border border-slate-700" title="全画面">⛶ 全画面</button>
             <div class="bg-slate-950 px-3.5 py-1.5 rounded-lg border border-emerald-500/40 shadow-inner flex items-center space-x-2">
                 <span class="text-xs text-emerald-400 font-bold">TIME</span>
                 <span id="timer-display" class="font-mono text-xl sm:text-2xl font-bold text-white tracking-wider">00:00.00</span>
@@ -120,7 +140,7 @@
         <div class="text-xs text-slate-400 hidden sm:block" id="footer-hint">
             💡 床で仕分け終わったら、すべての番重を台車に積み直して「できました！」を押そう！
         </div>
-        <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
+        <div class="flex items-center space-x-2 sm:space-x-3 justify-end shrink-0">
             <button id="undo-btn" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs sm:text-sm border border-slate-700 transition-all disabled:opacity-40">↩ 1手戻す</button>
             <button id="reset-btn" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs sm:text-sm border border-slate-700 transition-all">
                 最初から
@@ -195,7 +215,8 @@
         const FLOOR_COLS = 2;
         const FLOOR_ROWS = 2;
         const FLOOR_SLOT_COUNT = FLOOR_COLS * FLOOR_ROWS;
-        const HEADER_H = 30;
+        let HEADER_H = 30;
+        function legH() { return H < 300 ? 24 : 36; }
 
         const STAGES = [
             { stage: 1, crates: 3 },
@@ -250,6 +271,9 @@
         const actionBtn = document.getElementById('action-btn');
         const timerDisplay = document.getElementById('timer-display');
         const phaseInstruction = document.getElementById('phase-instruction');
+        const footerHint = document.getElementById('footer-hint');
+        new MutationObserver(() => { footerHint.textContent = phaseInstruction.textContent; })
+            .observe(phaseInstruction, { childList: true, characterData: true, subtree: true });
 
         function rand(n) { return Math.floor(Math.random() * n); }
 
@@ -518,18 +542,18 @@
 
         function getLayout() {
             const trW = Math.max(160, Math.min(210, W * 0.22));
-            const trH = Math.max(240, Math.min(380, H - 120));
+            const trH = Math.max(100, Math.min(380, H - (legH() + 28) - 32));
             const trolley = {
                 x: 24,
-                y: Math.max(48, (H - trH) / 2 + 10),
+                y: Math.max(legH() + 28, (H - trH) / 2 + 10),
                 w: trW,
                 h: trH
             };
 
             const gx = trolley.x + trW + 36;
-            const gy = 48;
+            const gy = legH() + 22;
             const gw = W - gx - 24;
-            const gh = H - gy - 20;
+            const gh = H - gy - 18;
             const gap = 12;
             const slotW = (gw - gap * (FLOOR_COLS - 1)) / FLOOR_COLS;
             const slotH = (gh - gap * (FLOOR_ROWS - 1)) / FLOOR_ROWS;
@@ -562,7 +586,7 @@
             const innerTop = tr.y + 38;
             const innerBottom = tr.y + tr.h - 16;
             const usable = innerBottom - innerTop;
-            const stepH = slots ? Math.max(16, Math.min(48, usable / slots)) : 0;
+            const stepH = slots ? Math.max(H < 300 ? 6 : 16, Math.min(48, usable / slots)) : 0;
             return { n, innerTop, innerBottom, stepH, cx: tr.x + 10, cw: tr.w - 20 };
         }
 
@@ -792,28 +816,29 @@
 
         function renderBackground(layout) {
             ctx.save();
-            const wallGrad = ctx.createLinearGradient(0, 0, 0, 36);
+            const wallGrad = ctx.createLinearGradient(0, 0, 0, legH());
             wallGrad.addColorStop(0, '#1e293b');
             wallGrad.addColorStop(1, '#0f172a');
             ctx.fillStyle = wallGrad;
-            ctx.fillRect(0, 0, W, 36);
+            ctx.fillRect(0, 0, W, legH());
             ctx.strokeStyle = 'rgba(148,163,184,0.25)';
             ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.moveTo(0, 36); ctx.lineTo(W, 36); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, legH()); ctx.lineTo(W, legH()); ctx.stroke();
 
-            const floorGrad = ctx.createLinearGradient(0, 36, 0, H);
+            const floorGrad = ctx.createLinearGradient(0, legH(), 0, H);
             floorGrad.addColorStop(0, '#1a2233');
             floorGrad.addColorStop(1, '#0d1420');
             ctx.fillStyle = floorGrad;
-            ctx.fillRect(0, 36, W, H - 36);
+            ctx.fillRect(0, legH(), W, H - legH());
             ctx.restore();
 
             ctx.save();
             let x = 12;
             const compact = W < 750;
             ITEM_LIST.forEach(t => {
-                const bw = 20 * t.sizeW;
-                drawItem(t, x, 4, bw, 28);
+                const lih = legH() - 8;
+                const bw = (lih * 20 / 28) * t.sizeW;
+                drawItem(t, x, 4, bw, lih);
                 x += bw + 3;
                 if (!compact) {
                     const label = t.sizeW === 2 ? `${t.full}` : t.name;
@@ -821,7 +846,7 @@
                     ctx.fillStyle = '#cbd5e1';
                     ctx.textAlign = 'left';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText(label, x, 18);
+                    ctx.fillText(label, x, legH() / 2);
                     x += ctx.measureText(label).width + 12;
                 } else {
                     x += 6;
@@ -990,9 +1015,9 @@
             const onTrolley = stackTrolley.length;
             if (empty) {
                 const btnW = Math.min(88, slot.w - 55);
-                const btnH = 20;
+                const btnH = Math.min(20, HEADER_H - 6);
                 const btnX = slot.x + slot.w - btnW - 5;
-                const btnY = slot.y + 4;
+                const btnY = slot.y + (HEADER_H - btnH) / 2;
                 ctx.fillStyle = '#e11d48';
                 ctx.beginPath();
                 ctx.roundRect(btnX, btnY, btnW, btnH, 5);
@@ -1001,9 +1026,9 @@
                 activeRemoveButtons.push({ crateId: crateId, x: btnX, y: btnY, w: btnW, h: btnH });
             } else if (onTrolley > 0) {
                 const btnW = Math.min(108, slot.w - 45);
-                const btnH = 20;
+                const btnH = Math.min(20, HEADER_H - 6);
                 const btnX = slot.x + slot.w - btnW - 5;
-                const btnY = slot.y + 4;
+                const btnY = slot.y + (HEADER_H - btnH) / 2;
                 ctx.fillStyle = '#0d9488';
                 ctx.beginPath();
                 ctx.roundRect(btnX, btnY, btnW, btnH, 5);
@@ -1286,7 +1311,7 @@
             const g = trolleyGeom(layout.trolley);
             if (g.n > 0) {
                 const cy = g.innerBottom - g.n * g.stepH;
-                if (pos.x >= g.cx && pos.x <= g.cx + g.cw && pos.y >= cy && pos.y <= cy + g.stepH) {
+                if (pos.x >= g.cx && pos.x <= g.cx + g.cw && pos.y >= Math.min(cy, g.innerTop) && pos.y <= g.innerBottom) {
                     draggingObject = {
                         kind: 'crate',
                         crateId: stackTrolley[g.n - 1],
@@ -1662,6 +1687,20 @@
             if (gameState === 'PLAYING' && !actionBtn.disabled) runInspection();
         });
 
+        document.getElementById('fs-btn').addEventListener('click', async () => {
+            sfx.init();
+            try {
+                if (document.fullscreenElement) {
+                    await document.exitFullscreen();
+                } else {
+                    await document.documentElement.requestFullscreen();
+                    if (screen.orientation && screen.orientation.lock) { try { await screen.orientation.lock('landscape'); } catch (e) {} }
+                }
+            } catch (e) {}
+            setTimeout(resizeCanvas, 150);
+        });
+        document.addEventListener('fullscreenchange', () => setTimeout(resizeCanvas, 150));
+
         undoBtn.addEventListener('click', () => { sfx.init(); undo(); });
 
         resetBtn.addEventListener('click', () => {
@@ -1691,20 +1730,27 @@
             startCountdown();
         });
 
+        function syncAppHeight() {
+            document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
+        }
         function resizeCanvas() {
+            syncAppHeight();
             const rect = canvas.getBoundingClientRect();
             const dpr = window.devicePixelRatio || 1;
             W = rect.width;
             H = rect.height;
+            HEADER_H = H < 300 ? 22 : 30;
             canvas.width = Math.round(W * dpr);
             canvas.height = Math.round(H * dpr);
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             render();
         }
         window.addEventListener('resize', resizeCanvas);
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', resizeCanvas);
         window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
         if (window.ResizeObserver) new ResizeObserver(() => resizeCanvas()).observe(canvas);
 
+        syncAppHeight();
         window.onload = () => {
             initGame();
             resizeCanvas();
