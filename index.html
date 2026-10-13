@@ -87,8 +87,8 @@
                     <h2 id="modal-title" class="text-2xl font-bold text-emerald-400">番重ソート RTA</h2>
 
                     <div id="modal-desc" class="text-xs sm:text-sm text-slate-300 leading-relaxed text-left bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-2">
-                        <p class="font-bold text-center text-amber-300 text-sm">【ルール：狭い店舗の4枠積み直し】</p>
-                        <p class="text-[11px] text-slate-300 bg-slate-900 rounded-lg p-2 border border-slate-700">床に広げられる番重は<strong class="text-emerald-300">最大4つまで</strong>！限られたスペースで番重を出し入れしながら、同じ種類を同じ番重にまとめよう。</p>
+                        <p class="font-bold text-center text-amber-300 text-sm">【ルール：激狭店舗の2枠積み直し】</p>
+                        <p class="text-[11px] text-slate-300 bg-slate-900 rounded-lg p-2 border border-slate-700">床に広げられる番重は<strong class="text-emerald-300">最大2つまで</strong>！限られたスペースで番重を出し入れしながら、同じ種類を同じ番重にまとめよう。</p>
                         <div class="grid grid-cols-2 gap-2 text-xs pt-1">
                             <div class="col-span-2 bg-slate-900 p-2 rounded-lg border border-blue-500/40 flex items-center space-x-2">
                                 <span class="inline-block w-7 h-7 rounded bg-slate-50 border-2 border-blue-600"></span>
@@ -115,7 +115,7 @@
                             </div>
                         </div>
                         <ul class="list-disc list-inside text-slate-400 text-[11px] pt-1 space-y-1">
-                            <li>台車の番重から床の4枠へ下ろして仕分け＆中身を整理しよう</li>
+                            <li>台車の番重から床の2枠へ下ろして仕分け＆中身を整理しよう。<strong class="text-amber-300">商品をタップ</strong>すると、もう一方の番重へ送れるよ（ドラッグでもOK）</li>
                             <li>床がいっぱいのときは、床の番重と台車の番重を「⇄ 床と入替」ボタンで直接入れ替えられるよ</li>
                             <li><strong class="text-emerald-300">同じ種類は1つの番重</strong>にまとめよう。入りきらない分だけ、いっぱいの番重の<strong class="text-amber-300">すぐ上かすぐ下</strong>に。まとめられるのに分けると減点</li>
                             <li>一番売れる<strong class="text-blue-300">牛乳は最上段</strong>だと高得点（品出しが楽！）</li>
@@ -213,16 +213,16 @@
         const GRID_COLS = 6;
         const GRID_ROWS = 2;
         const FLOOR_COLS = 2;
-        const FLOOR_ROWS = 2;
+        const FLOOR_ROWS = 1;
         const FLOOR_SLOT_COUNT = FLOOR_COLS * FLOOR_ROWS;
         let HEADER_H = 30;
         function legH() { return H < 300 ? 24 : 36; }
 
         const STAGES = [
             { stage: 1, crates: 3 },
-            { stage: 2, crates: 5 },
-            { stage: 3, crates: 7 },
-            { stage: 4, crates: 10 }
+            { stage: 2, crates: 4 },
+            { stage: 3, crates: 6 },
+            { stage: 4, crates: 8 }
         ];
 
         let currentStageIdx = 0;
@@ -517,7 +517,7 @@
             }
 
             if (!hasMoved) {
-                phaseInstruction.textContent = '👉 番重を床の4枠へ下ろして中身を整理し、すべて台車に積み直そう！';
+                phaseInstruction.textContent = '👉 番重を床の2枠へ下ろして中身を整理し、すべて台車に積み直そう！';
                 setActionEnabled(false);
                 return;
             }
@@ -535,7 +535,7 @@
                 phaseInstruction.textContent = `✨ 全部積み終わり！ 最上段の牛乳 ${topMilk}/${totalMilk} ・「できました！」で審査へ`;
                 setActionEnabled(true);
             } else {
-                phaseInstruction.textContent = `📦 床 ${onFloor}/4枠 ／ 🚚 台車 ${onTrolley}/${activeCrates.length}箱 ／ すべて台車に積むと完了できます`;
+                phaseInstruction.textContent = `📦 床 ${onFloor}/${FLOOR_SLOT_COUNT}枠 ／ 🚚 台車 ${onTrolley}/${activeCrates.length}箱 ／ すべて台車に積むと完了できます`;
                 setActionEnabled(false);
             }
         }
@@ -866,7 +866,7 @@
             ctx.fill();
             ctx.stroke();
             ctx.restore();
-            drawText('📦 床の作業スペース（最大4枠）', z.x - pad + 4, z.y - pad - 8, 10, 'rgba(134,239,172,0.8)', 'left');
+            drawText('📦 床の作業スペース（最大2枠）', z.x - pad + 4, z.y - pad - 8, 10, 'rgba(134,239,172,0.8)', 'left');
 
             const tr = layout.trolley;
             ctx.save();
@@ -1354,6 +1354,7 @@
                             const item = cell.ref ? cell.ref : cell;
                             draggingObject = {
                                 kind: 'item',
+                                sx: pos.x, sy: pos.y, moved: false,
                                 crateId: crateId,
                                 item: item,
                                 offY: e.pointerType === 'touch' ? 40 : 0,
@@ -1378,6 +1379,7 @@
         canvas.addEventListener('pointermove', (e) => {
             if (!draggingObject) return;
             const pos = getPointerPos(e);
+            if (draggingObject.sx !== undefined && !draggingObject.moved && Math.hypot(pos.x - draggingObject.sx, pos.y - draggingObject.sy) > 10) draggingObject.moved = true;
             pos.y -= draggingObject.offY || 0;
             const layout = getLayout();
 
@@ -1427,13 +1429,55 @@
             render();
         });
 
+        // 商品をタップ → 床のもう一方の番重の空きへ自動で送る（同じ種類の隣を優先）
+        function findSpot(crate, item) {
+            const span = item.type.sizeW;
+            let best = null, bestScore = -1;
+            for (let r = 0; r < GRID_ROWS; r++) {
+                for (let c = 0; c + span <= GRID_COLS; c++) {
+                    if (!canPlace(crate, r, c, span, null)) continue;
+                    let sc = 0;
+                    const same = (rr, cc) => {
+                        if (rr < 0 || rr >= GRID_ROWS || cc < 0 || cc >= GRID_COLS) return false;
+                        const cell = crate.grid[rr][cc];
+                        const it = cell ? (cell.ref ? cell.ref : cell) : null;
+                        return !!it && it.type.id === item.type.id;
+                    };
+                    if (same(r, c - 1)) sc++;
+                    if (same(r, c + span)) sc++;
+                    for (let o = 0; o < span; o++) if (same(1 - r, c + o)) sc++;
+                    if (sc > bestScore) { bestScore = sc; best = { r, c }; }
+                }
+            }
+            return best;
+        }
+        function autoSend(d) {
+            const src = crates[d.crateId];
+            const others = floorCrates.filter(id => id !== null && id !== d.crateId);
+            for (const id of others) {
+                const spot = findSpot(crates[id], d.item);
+                if (spot) {
+                    pushUndo();
+                    removeItem(src, d.item);
+                    placeItem(crates[id], spot.r, spot.c, d.item);
+                    hasMoved = true;
+                    buzz(8);
+                    sfx.playItemDrop();
+                    return;
+                }
+            }
+            buzz(30);
+        }
+
         function finishDrag(cancel) {
             if (!draggingObject) return;
             const d = draggingObject;
             const z = hoveredDropZone;
 
             if (!cancel) {
-                if (d.kind === 'crate') {
+                if (d.kind === 'item' && !d.moved) {
+                    autoSend(d);
+                } else if (d.kind === 'crate') {
                     if (z && z.type === 'floor') {
                         pushUndo();
                         const other = floorCrates[z.index];
