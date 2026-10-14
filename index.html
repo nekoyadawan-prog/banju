@@ -25,6 +25,12 @@
             overflow: hidden;
         }
         footer button { white-space: nowrap; flex-shrink: 0; }
+        .rg > div { min-width: 0; }
+        #toast { position: absolute; top: 3px; right: 8px; z-index: 20; max-width: clamp(160px, calc(100% - 480px), 60%);
+            pointer-events: none; opacity: 0; transform: translateY(-4px); transition: opacity .25s, transform .25s;
+            background: rgba(251,191,36,.96); color: #1c1917; font-weight: 700; font-size: 11px; padding: 3px 10px;
+            border-radius: 9999px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+        #toast.show { opacity: 1; transform: none; }
         /* 横持ちスマホなど、高さが足りないときはヘッダー/フッターを圧縮して盤面を広げる */
         @media (max-height: 520px) {
             header { padding-top: 2px !important; padding-bottom: 2px !important; }
@@ -32,12 +38,76 @@
             header h1 { font-size: 0.9rem !important; }
             header .mt-1 { margin-top: 0 !important; }
             header .bg-slate-950 { padding: 1px 10px !important; }
-            #timer-display { font-size: 1.1rem !important; }
+            #timer-display, #moves-display { font-size: 1.1rem !important; }
+            #modal-content { max-width: 44rem !important; }
+            .rg { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; }
+            /* 結果・説明モーダルを短い画面向けに：見出しを1行に、ボタンは下に固定して本文だけスクロール */
+            #modal-overlay { padding: 6px !important; }
+            #modal-content { display: flex !important; flex-direction: column !important; overflow: hidden !important; padding: 8px 14px 8px !important; border-radius: 14px !important; }
+            #modal-content > * + * { margin-top: 6px !important; }
+            #modal-content > div:first-child { flex: 1 1 0%; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+            #modal-content > div:first-child > * + * { margin-top: 6px !important; }
+            #modal-icon, #modal-title { display: inline-block !important; vertical-align: middle; }
+            #modal-icon { font-size: 1.6rem !important; line-height: 1 !important; }
+            #modal-title { font-size: 1.1rem !important; margin-left: 6px; }
+            #modal-desc { padding: 8px !important; }
+            #modal-desc .text-5xl { font-size: 2rem !important; }
+            /* ボタンは見出し行の右上へ。本文の縦スペースを確保する */
+            #modal-content { position: relative !important; }
+            #modal-content .sticky { position: absolute !important; top: 6px; right: 14px; width: 36%; z-index: 2; margin: 0 !important; padding: 0 !important; background: none !important; }
+            #modal-content > div:first-child > div:first-child { text-align: left !important; padding-right: 38%; min-height: 34px; }
+            #modal-btn { padding: 6px 0 !important; font-size: 1rem !important; }
+            .rk { display: grid !important; grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; text-align: left !important; }
+            .rk > :first-child { grid-row: 1 / span 2; }
+            .rk > * + * { margin-top: 0 !important; }
+            .rk .text-lg { font-size: 1rem !important; line-height: 1.2; }
+            .lc { display: flex; flex-direction: column; }
+            .lc > * + * { margin-top: 6px !important; }
+            .lc .rk { order: 0; } .lc .tc { order: 1; } .lc .cm { order: 2; }
+            .tcl { display: none; } .tcn { display: inline !important; }
+            .lc > :not(.rk):not(.cm):not(.tc) { order: 3; }
+            .cm { padding: 4px 8px !important; }
+            .tcs { display: none; }
+            #modal-icon { font-size: 1.3rem !important; }
+            #modal-title { font-size: 1rem !important; }
+            #modal-content .sticky { width: 32% !important; }
+            #modal-content > div:first-child > div:first-child { padding-right: 34% !important; }
+            .tc { padding: 4px 8px !important; }
+            .tc > * + * { margin-top: 2px !important; }
+            .tc .text-lg { font-size: 0.95rem !important; line-height: 1.2; }
             #phase-instruction { padding-top: 2px !important; padding-bottom: 2px !important; font-size: 11px !important; }
             footer { padding-top: 4px !important; padding-bottom: 4px !important; }
             footer button { padding: 6px 12px !important; }
             #phase-instruction { display: none !important; }
             #footer-hint { display: block !important; font-size: 11px !important; color: #fcd34d !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 0%; margin-right: 8px; }
+        }
+        @media (orientation: portrait) and (max-width: 560px) {
+            #fs-btn { display: none !important; }
+            header { padding-left: 8px !important; padding-right: 8px !important; }
+            header h1, header .text-xs { white-space: nowrap; }
+            header h1 { font-size: 0.85rem !important; }
+            #timer-display { font-size: 1.1rem !important; }
+            #moves-display { font-size: 1.1rem !important; }
+            header .bg-slate-950 { padding: 3px 8px !important; }
+            header .bg-slate-950 span:first-child { font-size: 10px !important; white-space: nowrap; }
+        }
+        .tcn { display: none; }
+        #title-screen { background: radial-gradient(ellipse at 15% 0%, #14305a 0%, #0b1220 55%, #060a12 100%); }
+        .ts-wrap { display: flex; flex-direction: row; gap: 20px; height: 100%; max-width: 64rem; margin: 0 auto; padding: 14px 18px; padding-left: max(18px, env(safe-area-inset-left)); padding-right: max(18px, env(safe-area-inset-right)); }
+        .ts-left { flex: 0 0 38%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; text-align: center; min-width: 0; }
+        .ts-right { flex: 1 1 0%; min-width: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 2px; }
+        .ts-btn { width: 100%; max-width: 18rem; border-radius: 14px; font-weight: 800; padding: 12px 0; transition: transform .1s; }
+        .ts-btn:active { transform: scale(.97); }
+        @media (orientation: portrait), (max-width: 640px) {
+            .ts-wrap { flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; gap: 14px; }
+            .ts-left { flex: none; padding-top: 10px; }
+            .ts-right { flex: none; overflow: visible; }
+        }
+        @media (max-height: 420px) and (orientation: landscape) {
+            .ts-left { gap: 6px; }
+            .ts-left .ts-logo { font-size: 2rem !important; }
+            .ts-left h1 { font-size: 1.5rem !important; }
+            .ts-btn { padding: 8px 0; }
         }
         canvas {
             touch-action: none;
@@ -51,7 +121,7 @@
 
     <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-2 flex justify-between items-center shadow-lg z-10 shrink-0">
         <div class="flex items-center space-x-3">
-            <span class="text-2xl">📦</span>
+            <button id="home-btn" class="text-2xl leading-none px-1 rounded-lg hover:bg-slate-800 active:scale-95" title="タイトルへ" aria-label="タイトルへ">🏠</button>
             <div>
                 <h1 class="font-bold text-base sm:text-lg tracking-wider text-emerald-400 leading-none">番重ソート RTA</h1>
                 <div class="text-xs text-slate-400 flex items-center space-x-2 mt-1">
@@ -64,6 +134,10 @@
 
         <div class="flex items-center space-x-3">
             <button id="fs-btn" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs border border-slate-700" title="全画面">⛶ 全画面</button>
+            <div class="bg-slate-950 px-3 py-1.5 rounded-lg border border-sky-500/40 shadow-inner flex items-center space-x-2">
+                <span class="text-xs text-sky-300 font-bold">手数</span>
+                <span id="moves-display" class="font-mono text-xl sm:text-2xl font-bold text-white tracking-wider">0</span>
+            </div>
             <div class="bg-slate-950 px-3.5 py-1.5 rounded-lg border border-emerald-500/40 shadow-inner flex items-center space-x-2">
                 <span class="text-xs text-emerald-400 font-bold">TIME</span>
                 <span id="timer-display" class="font-mono text-xl sm:text-2xl font-bold text-white tracking-wider">00:00.00</span>
@@ -75,12 +149,14 @@
 
     <main class="flex-1 relative bg-slate-950 overflow-hidden">
         <canvas id="gameCanvas" class="absolute inset-0 w-full h-full cursor-grab"></canvas>
+        <div id="toast"></div>
+        <canvas id="fx-canvas" class="absolute inset-0 w-full h-full" style="z-index:40;pointer-events:none"></canvas>
 
         <div id="rotate-hint" class="hidden portrait:flex absolute top-2 left-1/2 -translate-x-1/2 z-20 pointer-events-none bg-amber-400/95 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
             📱 スマホを横向きにすると遊びやすいよ！
         </div>
 
-        <div id="modal-overlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center z-30 p-4">
+        <div id="modal-overlay" class="absolute inset-0 bg-slate-950/90 flex items-center justify-center z-30 p-4">
             <div id="modal-content" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 pb-0 max-w-md w-full max-h-full overflow-y-auto shadow-2xl text-center space-y-5">
                 <div class="space-y-3">
                     <span class="text-5xl" id="modal-icon">🚚</span>
@@ -122,8 +198,10 @@
                             <li>空の番重は <strong class="text-rose-400">「もう使わない」</strong> で撤去（台車に残すと減点）</li>
                             <li>整理が終わったら、すべての番重を台車に積み直して完了宣言。<strong class="text-amber-300">60点以上で合格</strong></li>
                             <li class="list-none text-slate-500">採点: 同じ種類のまとまり60点 ＋ 牛乳が最上段30点 ＋ 片付け10点</li>
+                            <li>⏱ 速さ・手数・正確さに応じて<strong class="text-amber-300">称号</strong>がもらえるよ！店長のコメントにも注目</li>
                             <li><strong class="text-emerald-300">3・2・1・スタート！</strong>の掛け声と同時にタイマーが動き出すよ</li>
                         </ul>
+                        <div id="collection" class="pt-1"></div>
                     </div>
                 </div>
 
@@ -150,6 +228,20 @@
             </button>
         </div>
     </footer>
+
+    <div id="title-screen" class="hidden fixed inset-0 z-50 text-slate-200 overflow-hidden">
+        <div class="ts-wrap">
+            <section class="ts-left">
+                <div class="ts-logo text-5xl leading-none">📦</div>
+                <h1 class="font-black text-3xl tracking-wider text-emerald-400 leading-tight">番重ソート RTA</h1>
+                <p class="text-xs text-slate-400">激狭店舗の2枠積み直し</p>
+                <div id="ts-title-now" class="w-full max-w-[18rem] rounded-xl border border-amber-400/40 bg-amber-400/10 px-3 py-1.5"></div>
+                <button id="ts-start" class="ts-btn bg-emerald-600 hover:bg-emerald-500 text-white text-lg shadow-lg shadow-emerald-600/30">▶ ゲームスタート</button>
+                <button id="ts-rules" class="ts-btn bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm border border-slate-700">📖 遊び方</button>
+            </section>
+            <section id="ts-records" class="ts-right space-y-4"></section>
+        </div>
+    </div>
 
     <script>
         class SoundFX {
@@ -244,6 +336,38 @@
         let activeTrolleySwapButtons = [];
         let activeSwapButtons = [];
         let undoStack = [];
+        let moveCount = 0, undoCount = 0, said = {}, milkAtStart = false, toastTimer = null, fxToken = 0;
+        const TITLES_KEY = 'banju_rta_titles_v1';
+        // 称号・手数の目安（遊んでみて調整してね）
+        const MOVE_PAR_PER_CRATE = 4, MOVE_PAR_BASE = 6;
+        const TIME_TITLES = [
+            { max: 10, id: 't_legend', icon: '👑', name: '伝説の品出しマスター' },
+            { max: 16, id: 't_god',    icon: '⚡', name: '神速のバイトリーダー' },
+            { max: 24, id: 't_vet',    icon: '🏅', name: 'ベテラン店員' },
+            { max: 36, id: 't_new',    icon: '🌱', name: '頼れる新人' },
+            { max: Infinity, id: 't_slow', icon: '🐢', name: 'のんびり店員' }
+        ];
+        const BADGES = [
+            { id: 'perfect',   icon: '✨', name: 'パーフェクト仕分け', desc: '100点を取る' },
+            { id: 'nomistake', icon: '🎯', name: 'ノーやり直し',       desc: '「1手戻す」を使わずクリア' },
+            { id: 'efficient', icon: '🧠', name: 'ムダなし職人',       desc: '少ない手数でクリア' },
+            { id: 'grand',     icon: '🌟', name: '全ステージ制覇',     desc: '全ステージを合格' }
+        ];
+        const MASTERS = [
+            { id: 'm_milk',  icon: '🥛', name: '牛乳名人',       desc: '牛乳が最上段の満点で10回クリア' },
+            { id: 'm_speed', icon: '💨', name: 'スピード名人',   desc: 'Sランク＆1箱16秒以内でクリア' },
+            { id: 'm_moves', icon: '🧠', name: '手数名人',       desc: '手数が目安の8割以内でAランク以上' },
+            { id: 'm_s1',    icon: '🥇', name: 'STAGE1名人',     desc: 'STAGE1をSランクでクリア' },
+            { id: 'm_s2',    icon: '🥇', name: 'STAGE2名人',     desc: 'STAGE2をSランクでクリア' },
+            { id: 'm_s3',    icon: '🥇', name: 'STAGE3名人',     desc: 'STAGE3をSランクでクリア' },
+            { id: 'm_s4',    icon: '🥇', name: 'STAGE4名人',     desc: 'STAGE4をSランクでクリア' },
+            { id: 'm_all',   icon: '🎖', name: '番重マスター',   desc: '全ステージでSランクを出す' },
+            { id: 'm_reg',   icon: '🔁', name: '常連店員',       desc: '累計10回クリア' },
+            { id: 'm_reg2',  icon: '🏪', name: '店の看板店員',   desc: '累計50回クリア' }
+        ];
+        const TITLE_PRIORITY = ['m_all', 'm_reg2', 'm_speed', 'm_moves', 'm_milk', 'm_s4', 'm_s3', 'm_s2', 'm_s1', 'm_reg', 't_legend', 't_god', 't_vet', 't_new', 't_slow', 'grand', 'perfect', 'efficient', 'nomistake'];
+        const STATS_KEY = 'banju_rta_stats_v1';
+        const ALL_TITLES = TIME_TITLES.map(t => ({ id: t.id, icon: t.icon, name: t.name, desc: '1箱あたり' + (t.max === Infinity ? '36秒超' : t.max + '秒以内') })).concat(BADGES).concat(MASTERS);
         const BEST_KEY = 'banju_rta_best_v1';
 
         let startTime = 0;
@@ -259,7 +383,9 @@
         let W = 0, H = 0;
 
         const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        const mainCtx = canvas.getContext('2d');
+        let ctx = mainCtx;   // 背景・商品の使い回し用に一時的に差し替えることがある
+        let curDpr = 1;
 
         const modalOverlay = document.getElementById('modal-overlay');
         const modalIcon = document.getElementById('modal-icon');
@@ -402,6 +528,8 @@
         function pushUndo() {
             undoStack.push(snapshot());
             if (undoStack.length > 100) undoStack.shift();
+            moveCount++;
+            updateMoves();
             updateUndoBtn();
         }
         function updateUndoBtn() {
@@ -410,6 +538,9 @@
         function undo() {
             if (gameState !== 'PLAYING' || draggingObject || !undoStack.length) return;
             const sn = undoStack.pop();
+            moveCount = Math.max(0, moveCount - 1);
+            undoCount++;
+            updateMoves();
             stackTrolley = sn.trolley;
             floorCrates = sn.floor;
             removedCrateIds = new Set(sn.removed);
@@ -421,17 +552,255 @@
             updateUndoBtn();
             updatePhaseUI();
             render();
+            say(pick(['ドンマイ！やり直しOK 👍', '🧑‍💼 店長「焦らず焦らず」']));
         }
         function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
         function loadBest() { try { return JSON.parse(localStorage.getItem(BEST_KEY)) || {}; } catch (e) { return {}; } }
-        function saveBest(stage, ms, score) {
+        function saveBest(stage, ms, score, moves) {
             try {
                 const b = loadBest();
-                const old = b[stage];
-                const isNew = !old || score > old.score || (score === old.score && ms < old.ms);
-                if (isNew) { b[stage] = { ms, score }; localStorage.setItem(BEST_KEY, JSON.stringify(b)); }
-                return { isNew, prev: old };
-            } catch (e) { return { isNew: false, prev: null }; }
+                const o = b[stage] || {};
+                const res = {
+                    newMs: o.ms === undefined || ms < o.ms,
+                    newScore: o.score === undefined || score > o.score,
+                    newMoves: o.moves === undefined || moves < o.moves,
+                    prev: { ms: o.ms, score: o.score, moves: o.moves }
+                };
+                res.best = {
+                    ms: res.newMs ? ms : o.ms,
+                    score: res.newScore ? score : o.score,
+                    moves: res.newMoves ? moves : o.moves
+                };
+                b[stage] = res.best;
+                localStorage.setItem(BEST_KEY, JSON.stringify(b));
+                return res;
+            } catch (e) {
+                return { newMs: false, newScore: false, newMoves: false, prev: {}, best: { ms, score, moves } };
+            }
+        }
+
+        function pick(arr) { return arr[rand(arr.length)]; }
+        function parMoves(n) { return MOVE_PAR_PER_CRATE * n + MOVE_PAR_BASE; }
+        function timeTitle(ms, n) {
+            const spc = ms / 1000 / Math.max(1, n);
+            return TIME_TITLES.find(t => spc <= t.max);
+        }
+        function updateMoves() {
+            const el = document.getElementById('moves-display');
+            if (el) el.textContent = moveCount;
+        }
+        function say(text, ms) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.textContent = text;
+            t.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), ms || 2800);
+        }
+        function sayOnce(key, text) {
+            if (said[key]) return;
+            said[key] = true;
+            say(text);
+        }
+        function milkGathered() {
+            const active = crates.filter(c => !removedCrateIds.has(c.id));
+            let total = 0, withMilk = 0;
+            active.forEach(c => { const m = countMilk(c); total += m; if (m > 0) withMilk++; });
+            return total >= 2 && withMilk === 1;
+        }
+        function checkMilestones() {
+            if (gameState !== 'PLAYING') return;
+            if (!milkAtStart && milkGathered()) sayOnce('milk', '🥛 牛乳が1箱にまとまった！');
+            if (moveCount > parMoves(STAGES[currentStageIdx].crates) * 1.3) sayOnce('moves', '🧑‍💼 店長「手数が多いぞ…作戦を立てよう」');
+        }
+        function timeToasts() {
+            if (gameState !== 'PLAYING') return;
+            const n = STAGES[currentStageIdx].crates;
+            if (elapsedTime > n * 35000) sayOnce('t2', '🧑‍💼 店長「…コーヒー淹れてこようか？」');
+            else if (elapsedTime > n * 20000) sayOnce('t1', '⏰ 店長「そろそろ開店時間だぞ〜」');
+        }
+
+        function loadTitles() { try { return JSON.parse(localStorage.getItem(TITLES_KEY)) || {}; } catch (e) { return {}; } }
+        function earn(ids) {
+            const have = loadTitles();
+            const fresh = [];
+            ids.forEach(id => { if (!have[id]) { have[id] = Date.now(); fresh.push(id); } });
+            try { localStorage.setItem(TITLES_KEY, JSON.stringify(have)); } catch (e) {}
+            return fresh;
+        }
+        function loadStats() {
+            let st = {};
+            try { st = JSON.parse(localStorage.getItem(STATS_KEY)) || {}; } catch (e) {}
+            if (!Array.isArray(st.clears)) st.clears = [];
+            while (st.clears.length < STAGES.length) st.clears.push(0);
+            st.milk = st.milk || 0;
+            st.total = st.total || 0;
+            return st;
+        }
+        function recordClear(stageIdx, ev) {
+            const st = loadStats();
+            st.clears[stageIdx]++;
+            st.total++;
+            if (ev.milkPts >= 30) st.milk++;
+            try { localStorage.setItem(STATS_KEY, JSON.stringify(st)); } catch (e) {}
+            return st;
+        }
+        function checkMasters(stageIdx, ev, spc, moves, n, st) {
+            const ids = [];
+            if (st.milk >= 10) ids.push('m_milk');
+            if (ev.rank === 'S' && spc <= 16) ids.push('m_speed');
+            if (ev.total >= 80 && moves <= Math.ceil(parMoves(n) * 0.8)) ids.push('m_moves');
+            if (ev.rank === 'S') ids.push('m_s' + (stageIdx + 1));
+            const b = loadBest();
+            if (STAGES.every((x, i) => b[i + 1] && b[i + 1].score >= 90)) ids.push('m_all');
+            if (st.total >= 10) ids.push('m_reg');
+            if (st.total >= 50) ids.push('m_reg2');
+            return ids;
+        }
+        function chipHtml(t, have) {
+            return have[t.id]
+                ? `<span class="inline-flex items-center gap-1 bg-amber-400/15 border border-amber-400/50 text-amber-200 rounded-full px-2 py-0.5 text-[11px]">${t.icon} ${t.name}</span>`
+                : `<span class="inline-flex items-center gap-1 bg-slate-800/60 border border-slate-700 text-slate-500 rounded-full px-2 py-0.5 text-[11px]">🔒 ${t.desc}</span>`;
+        }
+        function renderTitle() {
+            const best = loadBest(), st = loadStats(), have = loadTitles();
+            const nowT = ALL_TITLES.find(t => t.id === TITLE_PRIORITY.find(id => have[id]));
+            document.getElementById('ts-title-now').innerHTML = nowT
+                ? `<div class="text-[10px] text-amber-200">現在の称号</div><div class="text-base font-black text-amber-300 leading-tight">${nowT.icon} ${nowT.name}</div>`
+                : `<div class="text-[11px] text-slate-300">称号はまだありません。クリアして手に入れよう！</div>`;
+
+            const rows = STAGES.map((stg, i) => {
+                const b = best[i + 1];
+                const par = parMoves(stg.crates);
+                if (!b) {
+                    return `<div class="flex items-center justify-between py-1.5 border-b border-slate-800 last:border-0 text-slate-500 text-xs"><span class="font-bold">STAGE ${stg.stage}（${stg.crates}箱）</span><span>未クリア</span></div>`;
+                }
+                const rk = rankFor(b.score);
+                return `<div class="py-1.5 border-b border-slate-800 last:border-0">
+                    <div class="flex items-center justify-between gap-2 text-xs">
+                        <span class="font-bold text-slate-200">STAGE ${stg.stage}<span class="text-slate-500 font-normal">（${stg.crates}箱）</span></span>
+                        <span class="font-black text-amber-300 text-lg leading-none w-5 text-center">${rk}</span>
+                        <span class="font-mono text-emerald-300">⏱ ${fmtMs(b.ms)}</span>
+                        <span class="text-sky-300">👟 ${b.moves !== undefined ? b.moves + '手' : '—'}</span>
+                        <span class="font-bold">${b.score}点</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 text-right">クリア ${st.clears[i]}回 ・ 手数の目安 ${par}手</div>
+                </div>`;
+            }).join('');
+
+            const grp = (label, list) => `<div><div class="text-[10px] text-slate-400 pb-1">${label}</div><div class="flex flex-wrap gap-1">${list.map(t => chipHtml(t, have)).join('')}</div></div>`;
+            const got = ALL_TITLES.filter(t => have[t.id]).length;
+            document.getElementById('ts-records').innerHTML = `
+                <div class="rounded-2xl border border-slate-700 bg-slate-900/70 p-3">
+                    <div class="text-sm font-bold text-emerald-300 pb-1">📊 自己ベスト</div>
+                    ${rows}
+                </div>
+                <div class="rounded-2xl border border-slate-700 bg-slate-900/70 p-3 space-y-2">
+                    <div class="text-sm font-bold text-amber-300">🏆 称号コレクション <span class="text-xs text-slate-400">${got}/${ALL_TITLES.length}</span></div>
+                    ${grp('スピード（1箱あたりのタイム）', TIME_TITLES.map(t => ALL_TITLES.find(a => a.id === t.id)))}
+                    ${grp('バッジ', BADGES)}
+                    ${grp('名人', MASTERS)}
+                </div>
+                <div class="text-[11px] text-slate-500 flex items-center justify-between pb-2">
+                    <span>累計クリア ${st.total}回</span>
+                    <button id="ts-reset" class="underline">記録をリセット</button>
+                </div>`;
+            document.getElementById('ts-reset').addEventListener('click', () => {
+                if (!confirm('ベスト記録・称号・クリア回数をすべて消します。よろしいですか？')) return;
+                try { [BEST_KEY, TITLES_KEY, STATS_KEY].forEach(k => localStorage.removeItem(k)); } catch (e) {}
+                renderTitle();
+            });
+        }
+        function collectionHtml() {
+            const have = loadTitles();
+            const got = ALL_TITLES.filter(t => have[t.id]).length;
+            const chips = ALL_TITLES.map(t => have[t.id]
+                ? `<span class="inline-flex items-center gap-1 bg-amber-400/15 border border-amber-400/50 text-amber-200 rounded-full px-2 py-0.5 text-[10px]">${t.icon} ${t.name}</span>`
+                : `<span class="inline-flex items-center gap-1 bg-slate-800/60 border border-slate-700 text-slate-500 rounded-full px-2 py-0.5 text-[10px]" title="${t.desc}">🔒 ${t.desc}</span>`
+            ).join('');
+            return `<div class="text-center text-amber-300 text-[11px] font-bold">🏆 称号コレクション ${got}/${ALL_TITLES.length}</div><div class="flex flex-wrap gap-1 justify-center pt-1">${chips}</div>`;
+        }
+        function renderCollection() {
+            const el = document.getElementById('collection');
+            if (el) el.innerHTML = collectionHtml();
+        }
+
+        function bossComment(ev, ms, moves, n) {
+            const spc = ms / 1000 / n, par = parMoves(n);
+            const fast = spc <= 16, slow = spc > 36, many = moves > par * 1.5;
+            if (ev.total < PASS_SCORE) {
+                if (ev.milkTop < 0.5) return pick(['牛乳は一番売れる！最上段に置こう。', '牛乳が下の方だと品出しが大変だよ。']);
+                return pick(['種類ごとにまとめれば探しやすくなるよ。', '惜しい！もう一度、種類ごとに整理してみよう。', 'これだとお客さんも店員も迷子だ…。']);
+            }
+            if (ev.total >= 100) return pick(['完璧！今すぐ店長代理をお願いしたい。', 'パーフェクト…！棚が芸術品だ。']);
+            if (ev.total >= 90 && fast) return pick(['速くて正確！新人研修の見本にしたい！', 'お客さんが来る前に終わってる…君、何者？']);
+            if (fast && ev.total < 80) return pick(['速い！けど雑じゃない？牛乳の位置だけ見直そう。', 'スピードは一流、仕上げは二流。次は丁寧さも！']);
+            if (slow && ev.total >= 90) return pick(['仕事は完璧！あとはスピードだけだ。', '丁寧すぎて、お客さん並び始めてるぞ…！']);
+            if (many) return pick(['手数が多いな。下ろす前に「どの箱に集めるか」決めると速いぞ。', '行ったり来たり…腰が心配だ。']);
+            if (ev.total >= 80) return pick(['いい感じ！あと一歩でSランクだ。', 'なかなかやるね。牛乳は最上段、忘れずに！']);
+            return pick(['ギリギリ合格！次はまとまりを意識してみよう。', '合格は合格！でも伸びしろ、たっぷりあるぞ。']);
+        }
+        function commentCard(text) {
+            return `<div class="cm bg-slate-950/70 border border-slate-700 rounded-lg p-2 text-xs text-amber-100">🧑‍💼 店長「${text}」</div>`;
+        }
+        function titleCard(tt, badges, fresh, spc) {
+            const chips = badges.map(id => {
+                const b = ALL_TITLES.find(x => x.id === id);
+                return `<span class="inline-flex items-center gap-1 bg-slate-800 border border-slate-600 rounded-full px-2 py-0.5 text-[11px]">${b.icon} ${b.name}${fresh.includes(id) ? ' <b class="text-amber-300">NEW</b>' : ''}</span>`;
+            }).join('');
+            return `<div class="tc bg-gradient-to-r from-amber-500/20 to-rose-500/10 border border-amber-400/50 rounded-xl p-2 text-center space-y-1">
+                <div class="tcl text-[10px] text-amber-200">獲得称号${fresh.includes(tt.id) ? ' <b class="text-amber-300">NEW</b>' : ''}</div>
+                <div class="text-lg font-black text-amber-300">${tt.icon} ${tt.name}${fresh.includes(tt.id) ? ' <b class="tcn text-[10px] align-middle">NEW</b>' : ''}</div>
+                <div class="tcs text-[11px] text-slate-400">1箱あたり ${spc.toFixed(1)}秒</div>
+                ${chips ? `<div class="flex flex-wrap gap-1 justify-center">${chips}</div>` : ''}
+            </div>`;
+        }
+        function bestLine(b) {
+            const first = b.prev.ms === undefined;
+            const bits = [];
+            if (!first) { if (b.newMs) bits.push('タイム'); if (b.newMoves) bits.push('手数'); if (b.newScore) bits.push('点数'); }
+            const head = first
+                ? '<p class="text-center text-amber-300 text-xs font-bold">🎖 初クリア記録！</p>'
+                : (bits.length ? `<p class="text-center text-amber-300 text-xs font-bold">🏅 自己ベスト更新！（${bits.join('・')}）</p>` : '');
+            return head + `<p class="text-center text-slate-400 text-[11px]">ベスト ⏱ ${fmtMs(b.best.ms)} ／ 👟 ${b.best.moves}手 ／ ${b.best.score}点</p>`;
+        }
+
+        function clearFx() {
+            const cv = document.getElementById('fx-canvas');
+            if (!cv) return;
+            const c = cv.getContext('2d');
+            c.setTransform(1, 0, 0, 1, 0, 0);
+            c.clearRect(0, 0, cv.width, cv.height);
+        }
+        function confetti(count) {
+            const cv = document.getElementById('fx-canvas');
+            if (!cv) return;
+            const r = cv.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+            cv.width = Math.round(r.width * dpr);
+            cv.height = Math.round(r.height * dpr);
+            const c = cv.getContext('2d');
+            c.setTransform(dpr, 0, 0, dpr, 0, 0);
+            const cols = ['#fbbf24', '#34d399', '#60a5fa', '#f472b6', '#f87171', '#a78bfa'];
+            const ps = Array.from({ length: count }, () => ({
+                x: Math.random() * r.width, y: -10 - Math.random() * r.height * 0.5,
+                vx: (Math.random() - 0.5) * 2, vy: 2 + Math.random() * 3,
+                sz: 4 + Math.random() * 5, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3,
+                col: cols[rand(cols.length)]
+            }));
+            const tok = ++fxToken;
+            const t0 = performance.now();
+            (function frame(now) {
+                if (tok !== fxToken) return;
+                c.clearRect(0, 0, r.width, r.height);
+                ps.forEach(q => {
+                    q.x += q.vx; q.y += q.vy; q.vy += 0.03; q.rot += q.vr;
+                    c.save(); c.translate(q.x, q.y); c.rotate(q.rot);
+                    c.fillStyle = q.col; c.fillRect(-q.sz / 2, -q.sz / 4, q.sz, q.sz / 2);
+                    c.restore();
+                });
+                if (now - t0 < 3200) requestAnimationFrame(frame); else c.clearRect(0, 0, r.width, r.height);
+            })(t0);
         }
 
         function initGame() {
@@ -441,6 +810,8 @@
             summaryShown = false;
             hasMoved = false;
             undoStack = [];
+            moveCount = 0; undoCount = 0; said = {}; milkAtStart = false;
+            fxToken++; clearFx(); updateMoves();
             countdown = null;
             crateAppear = {};
             goFlashUntil = 0;
@@ -486,6 +857,7 @@
             timerInterval = setInterval(() => {
                 elapsedTime = Date.now() - startTime;
                 renderTimer();
+                timeToasts();
             }, 30);
         }
         function stopTimer() {
@@ -531,7 +903,9 @@
             const topId = onTrolley > 0 ? stackTrolley[onTrolley - 1] : null;
             const topMilk = topId !== null ? countMilk(crates[topId]) : 0;
 
+            checkMilestones();
             if (onFloor === 0 && onTrolley === activeCrates.length && activeCrates.length > 0) {
+                sayOnce('ready', '✨ 積み終わり！「できました！」を押そう');
                 phaseInstruction.textContent = `✨ 全部積み終わり！ 最上段の牛乳 ${topMilk}/${totalMilk} ・「できました！」で審査へ`;
                 setActionEnabled(true);
             } else {
@@ -633,7 +1007,25 @@
             ctx.fill();
         }
 
+        const spriteCache = new Map();
         function drawItem(type, bx, by, bw, bh) {
+            const key = type.id + '|' + bw.toFixed(1) + '|' + bh.toFixed(1) + '|' + curDpr;
+            let sp = spriteCache.get(key);
+            if (!sp) {
+                if (spriteCache.size > 300) spriteCache.clear();
+                const M = 2;
+                sp = document.createElement('canvas');
+                sp.width = Math.ceil((bw + M * 2) * curDpr);
+                sp.height = Math.ceil((bh + M * 2) * curDpr);
+                const oc = sp.getContext('2d');
+                oc.setTransform(curDpr, 0, 0, curDpr, 0, 0);
+                const real = ctx; ctx = oc;
+                try { drawItemRaw(type, M, M, bw, bh); } finally { ctx = real; }
+                spriteCache.set(key, sp);
+            }
+            ctx.drawImage(sp, bx - 2, by - 2, sp.width / curDpr, sp.height / curDpr);
+        }
+        function drawItemRaw(type, bx, by, bw, bh) {
             ctx.save();
             const pad = Math.max(1, bw * 0.04);
             const iw = bw - pad * 2;
@@ -814,6 +1206,21 @@
             }
         }
 
+        let bgCache = null, bgKey = '';
+        function drawBackground(layout) {
+            const key = W + 'x' + H + 'x' + curDpr;
+            if (!bgCache || bgKey !== key) {
+                const off = document.createElement('canvas');
+                off.width = canvas.width; off.height = canvas.height;
+                const oc = off.getContext('2d');
+                oc.setTransform(curDpr, 0, 0, curDpr, 0, 0);
+                const real = ctx; ctx = oc;
+                try { renderBackground(layout); } finally { ctx = real; }
+                bgCache = off; bgKey = key;
+            }
+            ctx.drawImage(bgCache, 0, 0, W, H);
+        }
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { bgKey = ''; spriteCache.clear(); render(); });
         function renderBackground(layout) {
             ctx.save();
             const wallGrad = ctx.createLinearGradient(0, 0, 0, legH());
@@ -990,9 +1397,10 @@
             const isSwapTarget = z && z.type === 'floor' && z.swap && floorCrates[z.index] === crateId;
 
             ctx.save();
-            ctx.shadowColor = 'rgba(0,0,0,0.4)';
-            ctx.shadowBlur = 10;
-            ctx.shadowOffsetY = 4;
+            ctx.fillStyle = 'rgba(0,0,0,0.30)';
+            ctx.beginPath();
+            ctx.roundRect(slot.x, slot.y + 4, slot.w, slot.h, 10);
+            ctx.fill();
             const grad = ctx.createLinearGradient(0, slot.y, 0, slot.y + slot.h);
             grad.addColorStop(0, milk > 0 ? '#2f4f86' : '#52627a');
             grad.addColorStop(1, milk > 0 ? '#1e3a6e' : '#3b475b');
@@ -1003,7 +1411,6 @@
             ctx.roundRect(slot.x, slot.y, slot.w, slot.h, 10);
             ctx.fill();
             ctx.stroke();
-            ctx.shadowColor = 'transparent';
 
             ctx.fillStyle = milk > 0 ? '#1d4ed8' : '#475569';
             ctx.beginPath();
@@ -1117,18 +1524,16 @@
             if (draggingObject.kind === 'crate') {
                 const crate = crates[draggingObject.crateId];
                 const w = 220, h = 50;
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 12;
-                ctx.shadowOffsetY = 6;
+                ctx.fillStyle = 'rgba(0,0,0,0.35)';
+                ctx.beginPath(); ctx.roundRect(draggingObject.currentX - w / 2 + 2, draggingObject.currentY - h / 2 + 7, w, h, 8); ctx.fill();
                 ctx.globalAlpha = 0.95;
                 drawMiniCrate(crate, draggingObject.currentX - w / 2, draggingObject.currentY - h / 2, w, h, false);
             } else {
                 const type = draggingObject.item.type;
                 const bw = 42 * type.sizeW;
                 const bh = 70;
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 10;
-                ctx.shadowOffsetY = 6;
+                ctx.fillStyle = 'rgba(0,0,0,0.30)';
+                ctx.beginPath(); ctx.roundRect(draggingObject.currentX - bw / 2 + 2, draggingObject.currentY - bh / 2 + 3, bw, bh, 8); ctx.fill();
                 drawItem(type, draggingObject.currentX - bw / 2, draggingObject.currentY - bh / 2 - 5, bw, bh);
             }
             ctx.restore();
@@ -1180,6 +1585,8 @@
                     goFlashUntil = now + 700;
                     ensureTimer();
                     sfx.playGo();
+                    milkAtStart = milkGathered();
+                    say(pick(['🧑‍💼 店長「開店前に頼むよ！」', '🧑‍💼 店長「よーい、スタート！」']));
                     updatePhaseUI();
                 }
             }
@@ -1226,11 +1633,17 @@
             ctx.restore();
         }
 
+        let renderQueued = false;
+        function requestRender() {
+            if (renderQueued) return;
+            renderQueued = true;
+            requestAnimationFrame(() => { renderQueued = false; render(); });
+        }
         function render() {
             if (!W || !H) return;
             ctx.clearRect(0, 0, W, H);
             const layout = getLayout();
-            renderBackground(layout);
+            drawBackground(layout);
             renderTrolley(layout.trolley);
             renderFloorCrates(layout.floorSlots);
             renderDraggingObject();
@@ -1261,6 +1674,7 @@
                     hasMoved = true;
                     ensureTimer();
                     sfx.playRemoveCrate();
+                    say('🗑️ ナイス片付け！');
                     updatePhaseUI();
                     render();
                     return;
@@ -1426,7 +1840,7 @@
                     break;
                 }
             }
-            render();
+            requestRender();
         });
 
         // 商品をタップ → 床のもう一方の番重の空きへ自動で送る（同じ種類の隣を優先）
@@ -1591,7 +2005,8 @@
             return { perType, conc, milkTop, milkTiers, empties, concPts, milkPts, cleanPts, total, rank };
         }
 
-        function buildScoreHtml(ev, timeText) {
+        function buildScoreHtml(ev, timeText, extra) {
+            extra = extra || {};
             const rows = ev.perType.map(p => {
                 const mark = p.score >= 1 ? '◎' : (p.score >= 0.75 ? '○' : (p.score >= 0.5 ? '△' : '✕'));
                 const markColor = p.score >= 1 ? 'text-emerald-400' : (p.score >= 0.75 ? 'text-sky-300' : (p.score >= 0.5 ? 'text-amber-300' : 'text-rose-400'));
@@ -1623,18 +2038,27 @@
                 : `<p class="text-emerald-300 text-xs font-bold text-center pt-1">完璧な仕分けです！</p>`;
 
             return `
-                <div class="text-center space-y-0.5">
-                    <div class="text-5xl font-black text-amber-300 leading-none">${ev.rank}</div>
-                    <div class="text-lg font-bold text-white">${ev.total}点 <span class="text-xs font-normal text-slate-400">/ 100（合格 ${PASS_SCORE}点）</span></div>
-                    <div class="text-xs text-slate-400">タイム <span class="text-yellow-300 font-mono">${timeText}</span></div>
+                <div class="rg space-y-3">
+                    <div class="lc space-y-2">
+                        <div class="rk text-center space-y-0.5">
+                            <div class="text-5xl font-black text-amber-300 leading-none">${ev.rank}</div>
+                            <div class="text-lg font-bold text-white">${ev.total}点 <span class="text-xs font-normal text-slate-400">/ 100（合格 ${PASS_SCORE}点）</span></div>
+                            <div class="text-xs text-slate-400">タイム <span class="text-yellow-300 font-mono">${timeText}</span> ・ 手数 <span class="text-sky-300 font-mono">${extra.moves !== undefined ? extra.moves : '-'}</span></div>
+                        </div>
+                        ${extra.titleHtml || ''}
+                        ${extra.commentHtml || ''}
+                        ${extra.bestHtml || ''}
+                    </div>
+                    <div class="space-y-2">
+                        <div class="space-y-1 text-xs">
+                            <div class="flex justify-between"><span>種類のまとまり</span><span class="font-bold">${ev.concPts} / 60</span></div>
+                            <div class="flex justify-between"><span>牛乳が最上段</span><span class="font-bold">${ev.milkPts} / 30</span></div>
+                            <div class="flex justify-between"><span>片付け</span><span class="font-bold">${ev.cleanPts} / 10</span></div>
+                        </div>
+                        <div class="space-y-1 text-xs border-t border-slate-800 pt-2">${rows}</div>
+                        ${hintHtml}
+                    </div>
                 </div>
-                <div class="space-y-1 text-xs border-t border-slate-800 pt-2">
-                    <div class="flex justify-between"><span>種類のまとまり</span><span class="font-bold">${ev.concPts} / 60</span></div>
-                    <div class="flex justify-between"><span>牛乳が最上段</span><span class="font-bold">${ev.milkPts} / 30</span></div>
-                    <div class="flex justify-between"><span>片付け</span><span class="font-bold">${ev.cleanPts} / 10</span></div>
-                </div>
-                <div class="space-y-1 text-xs border-t border-slate-800 pt-2">${rows}</div>
-                ${hintHtml}
             `;
         }
 
@@ -1652,8 +2076,13 @@
         function showSummary() {
             const done = STAGES.map((st, i) => stageResults[i]).filter(Boolean);
             const totalMs = done.reduce((a, r) => a + r.ms, 0);
+            const totalMoves = done.reduce((a, r) => a + (r.moves || 0), 0);
+            const totalCrates = STAGES.reduce((a, st, i) => a + (stageResults[i] ? st.crates : 0), 0) || 1;
             const avg = done.length ? Math.round(done.reduce((a, r) => a + r.score, 0) / done.length) : 0;
             const rank = rankFor(avg);
+            const tt = timeTitle(totalMs, totalCrates);
+            const badges = done.length === STAGES.length ? ['grand'] : [];
+            const fresh = earn([tt.id, ...badges]);
 
             const rows = STAGES.map((st, i) => {
                 const r = stageResults[i];
@@ -1662,21 +2091,61 @@
                     <div class="text-slate-200 font-bold">STAGE ${st.stage} (${st.crates}箱)</div>
                     <span class="font-black text-amber-300 text-base">${r.rank}</span>
                     <span class="font-bold">${r.score}点</span>
+                    <span class="text-sky-300 text-[11px]">${r.moves !== undefined ? r.moves : '-'}手</span>
                     <span class="font-mono text-emerald-300">${r.timeText}</span>
                 </div>`;
             }).join('');
 
             const html = `
-                <div class="text-center space-y-0.5">
-                    <div class="text-xs text-slate-400">総合ランク</div>
-                    <div class="text-5xl font-black text-amber-300 leading-none">${rank}</div>
-                    <div class="text-lg font-bold text-white">平均 ${avg}点</div>
-                    <div class="text-xs text-slate-400">合計タイム <span class="text-yellow-300 font-mono text-base">${fmtMs(totalMs)}</span></div>
+                <div class="rg space-y-3">
+                    <div class="space-y-2">
+                        <div class="text-center space-y-0.5">
+                            <div class="text-xs text-slate-400">総合ランク</div>
+                            <div class="text-5xl font-black text-amber-300 leading-none">${rank}</div>
+                            <div class="text-lg font-bold text-white">平均 ${avg}点</div>
+                            <div class="text-xs text-slate-400">合計タイム <span class="text-yellow-300 font-mono text-base">${fmtMs(totalMs)}</span> ・ 手数 <span class="text-sky-300 font-mono">${totalMoves}</span></div>
+                        </div>
+                        ${titleCard(tt, badges, fresh, totalMs / 1000 / totalCrates)}
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-xs border-t border-slate-800 pt-1">${rows}</div>
+                        <div class="border-t border-slate-800 pt-2">${collectionHtml()}</div>
+                    </div>
                 </div>
-                <div class="text-xs border-t border-slate-800 pt-1">${rows}</div>
             `;
-            showResult('👑', '全ステージ制覇！', html, 'もう一度最初から');
+            showResult('👑', '全ステージ制覇！', html, '🏠 タイトルへ戻る');
+            confetti(200);
         }
+
+        const titleScreen = document.getElementById('title-screen');
+        let RULES = null;
+        function goTitle(force) {
+            if (!force && gameState === 'PLAYING' && (moveCount > 0 || stageResults.some(Boolean))) {
+                if (!confirm('タイトルに戻りますか？\n進行中のプレイは中断されます。')) return;
+            }
+            stageResults = [];
+            stageTries = STAGES.map(() => 0);
+            currentStageIdx = 0;
+            modalOverlay.classList.add('hidden');
+            initGame();
+            clearFx();
+            renderTitle();
+            titleScreen.classList.remove('hidden');
+        }
+        function showRules() {
+            titleScreen.classList.add('hidden');
+            if (RULES) {
+                modalIcon.textContent = RULES.icon;
+                modalTitle.textContent = RULES.title;
+                modalDesc.innerHTML = RULES.html;
+                modalBtn.textContent = RULES.btn;
+            }
+            modalOverlay.classList.remove('hidden');
+            renderCollection();
+        }
+        document.getElementById('ts-start').addEventListener('click', () => { sfx.init(); titleScreen.classList.add('hidden'); restartRun(); });
+        document.getElementById('ts-rules').addEventListener('click', () => { sfx.init(); showRules(); });
+        document.getElementById('home-btn').addEventListener('click', () => { sfx.init(); goTitle(false); });
 
         function restartRun() {
             stageResults = [];
@@ -1700,29 +2169,41 @@
 
             const ev = evaluateLayout();
             stageTries[currentStageIdx]++;
-            let body = buildScoreHtml(ev, timeText);
+            const n = STAGES[currentStageIdx].crates;
+            const spc = elapsedTime / 1000 / n;
             const isLastStage = currentStageIdx >= STAGES.length - 1;
+            const extra = { moves: moveCount, commentHtml: commentCard(bossComment(ev, elapsedTime, moveCount, n)) };
 
             if (ev.total >= PASS_SCORE) {
                 lastPassed = true;
+                const tt = timeTitle(elapsedTime, n);
+                const badges = [];
+                if (ev.total >= 100) badges.push('perfect');
+                if (undoCount === 0) badges.push('nomistake');
+                if (moveCount <= parMoves(n)) badges.push('efficient');
+                const bst = saveBest(currentStageIdx + 1, elapsedTime, ev.total, moveCount);
+                const stNow = recordClear(currentStageIdx, ev);
+                const masters = checkMasters(currentStageIdx, ev, spc, moveCount, n, stNow);
+                const fresh = earn([tt.id, ...badges, ...masters]);
+                const shown = badges.concat(masters.filter(id => fresh.includes(id)));
+                extra.titleHtml = titleCard(tt, shown, fresh, spc);
+                extra.bestHtml = bestLine(bst);
                 stageResults[currentStageIdx] = {
                     score: ev.total, rank: ev.rank, ms: elapsedTime, timeText: timeText,
-                    tries: stageTries[currentStageIdx]
+                    moves: moveCount, title: tt.id, tries: stageTries[currentStageIdx]
                 };
                 sfx.playVictory();
-                const bst = saveBest(currentStageIdx + 1, elapsedTime, ev.total);
-                const bestLine = bst.isNew
-                    ? `<p class="text-center text-amber-300 text-xs font-bold">🏅 ベスト更新！${bst.prev ? '（前回 ' + fmtMs(bst.prev.ms) + ' / ' + bst.prev.score + '点）' : ''}</p>`
-                    : (bst.prev ? `<p class="text-center text-slate-400 text-[11px]">ベスト ${fmtMs(bst.prev.ms)} / ${bst.prev.score}点</p>` : '');
-                body += bestLine;
+                const body = buildScoreHtml(ev, timeText, extra);
                 if (!isLastStage) {
                     showResult('🏆', `🎉 STAGE ${currentStageIdx + 1} 合格！`, body, '次のステージへ');
                 } else {
                     summaryPending = true;
                     showResult('🏆', `🎉 STAGE ${currentStageIdx + 1} 合格！`, body, '総合結果を見る');
                 }
+                const big = ev.rank === 'S' || ev.total >= 100 || tt.id === 't_legend' || tt.id === 't_god';
+                if (big) confetti(150); else if (ev.rank === 'A') confetti(70);
             } else {
-                showResult('⚠️', '合格ライン未達', body, 'やり直す');
+                showResult('⚠️', '合格ライン未達', buildScoreHtml(ev, timeText, extra), 'やり直す');
             }
         }
 
@@ -1757,7 +2238,7 @@
 
         modalBtn.addEventListener('click', () => {
             sfx.init();
-            if (summaryShown) { restartRun(); return; }
+            if (summaryShown) { goTitle(true); return; }
             if (summaryPending) {
                 summaryPending = false;
                 summaryShown = true;
@@ -1780,12 +2261,16 @@
         function resizeCanvas() {
             syncAppHeight();
             const rect = canvas.getBoundingClientRect();
-            const dpr = window.devicePixelRatio || 1;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            if (curDpr !== dpr) { curDpr = dpr; spriteCache.clear(); bgKey = ''; }
             W = rect.width;
             H = rect.height;
             HEADER_H = H < 300 ? 22 : 30;
-            canvas.width = Math.round(W * dpr);
-            canvas.height = Math.round(H * dpr);
+            const nw = Math.round(W * dpr), nh = Math.round(H * dpr);
+            if (canvas.width !== nw || canvas.height !== nh) {
+                canvas.width = nw;
+                canvas.height = nh;
+            }
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             render();
         }
@@ -1796,7 +2281,12 @@
 
         syncAppHeight();
         window.onload = () => {
+            RULES = { icon: modalIcon.textContent, title: modalTitle.textContent, html: modalDesc.innerHTML, btn: modalBtn.textContent };
+            renderCollection();
             initGame();
+            modalOverlay.classList.add('hidden');
+            renderTitle();
+            titleScreen.classList.remove('hidden');
             resizeCanvas();
             setTimeout(resizeCanvas, 300);
         };
