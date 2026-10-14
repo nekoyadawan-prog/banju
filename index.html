@@ -31,7 +31,7 @@
             background: rgba(251,191,36,.96); color: #1c1917; font-weight: 700; font-size: 11px; padding: 3px 10px;
             border-radius: 9999px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
         #toast.show { opacity: 1; transform: none; }
-        /* 横持ちスマホなど、高さが足りないときはヘッダー/フッターを圧縮して盤面を広げる */
+        /* ===== 高さが足りない画面（横持ちスマホ）：ヘッダー/フッターを圧縮して盤面を広げる ===== */
         @media (max-height: 520px) {
             header { padding-top: 2px !important; padding-bottom: 2px !important; }
             header .text-2xl { font-size: 1.15rem !important; line-height: 1 !important; }
@@ -39,47 +39,10 @@
             header .mt-1 { margin-top: 0 !important; }
             header .bg-slate-950 { padding: 1px 10px !important; }
             #timer-display, #moves-display { font-size: 1.1rem !important; }
-            #modal-content { max-width: 44rem !important; }
-            .rg { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; }
-            /* 結果・説明モーダルを短い画面向けに：見出しを1行に、ボタンは下に固定して本文だけスクロール */
-            #modal-overlay { padding: 6px !important; }
-            #modal-content { display: flex !important; flex-direction: column !important; overflow: hidden !important; padding: 8px 14px 8px !important; border-radius: 14px !important; }
-            #modal-content > * + * { margin-top: 6px !important; }
-            #modal-content > div:first-child { flex: 1 1 0%; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-            #modal-content > div:first-child > * + * { margin-top: 6px !important; }
-            #modal-icon, #modal-title { display: inline-block !important; vertical-align: middle; }
-            #modal-icon { font-size: 1.6rem !important; line-height: 1 !important; }
-            #modal-title { font-size: 1.1rem !important; margin-left: 6px; }
-            #modal-desc { padding: 8px !important; }
-            #modal-desc .text-5xl { font-size: 2rem !important; }
-            /* ボタンは見出し行の右上へ。本文の縦スペースを確保する */
-            #modal-content { position: relative !important; }
-            #modal-content .sticky { position: absolute !important; top: 6px; right: 14px; width: 36%; z-index: 2; margin: 0 !important; padding: 0 !important; background: none !important; }
-            #modal-content > div:first-child > div:first-child { text-align: left !important; padding-right: 38%; min-height: 34px; }
-            #modal-btn { padding: 6px 0 !important; font-size: 1rem !important; }
-            .rk { display: grid !important; grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; text-align: left !important; }
-            .rk > :first-child { grid-row: 1 / span 2; }
-            .rk > * + * { margin-top: 0 !important; }
-            .rk .text-lg { font-size: 1rem !important; line-height: 1.2; }
-            .lc { display: flex; flex-direction: column; }
-            .lc > * + * { margin-top: 6px !important; }
-            .lc .rk { order: 0; } .lc .tc { order: 1; } .lc .cm { order: 2; }
-            .tcl { display: none; } .tcn { display: inline !important; }
-            .lc > :not(.rk):not(.cm):not(.tc) { order: 3; }
-            .cm { padding: 4px 8px !important; }
-            .tcs { display: none; }
-            #modal-icon { font-size: 1.3rem !important; }
-            #modal-title { font-size: 1rem !important; }
-            #modal-content .sticky { width: 32% !important; }
-            #modal-content > div:first-child > div:first-child { padding-right: 34% !important; }
-            .tc { padding: 4px 8px !important; }
-            .tc > * + * { margin-top: 2px !important; }
-            .tc .text-lg { font-size: 0.95rem !important; line-height: 1.2; }
-            #phase-instruction { padding-top: 2px !important; padding-bottom: 2px !important; font-size: 11px !important; }
+            #phase-instruction { display: none !important; }
+            #footer-hint { display: block !important; font-size: 12px !important; color: #fcd34d !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 0%; margin-right: 8px; }
             footer { padding-top: 4px !important; padding-bottom: 4px !important; }
             footer button { padding: 6px 12px !important; }
-            #phase-instruction { display: none !important; }
-            #footer-hint { display: block !important; font-size: 11px !important; color: #fcd34d !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 0%; margin-right: 8px; }
         }
         @media (orientation: portrait) and (max-width: 560px) {
             #fs-btn { display: none !important; }
@@ -91,23 +54,195 @@
             header .bg-slate-950 { padding: 3px 8px !important; }
             header .bg-slate-950 span:first-child { font-size: 10px !important; white-space: nowrap; }
         }
-        .tcn { display: none; }
+
+        /* ===== 横画面専用ガード（スマホを縦にしているときだけ全面表示） ===== */
+        #portrait-guard {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: radial-gradient(ellipse at 50% 0%, #14305a 0%, #0b1220 60%, #060a12 100%);
+            flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+            padding: 24px; text-align: center; color: #f1f5f9; touch-action: none;
+        }
+        @media (orientation: portrait) and (hover: none) and (pointer: coarse) and (max-width: 820px) {
+            #portrait-guard { display: flex; }
+        }
+        .pg-phone { font-size: 76px; line-height: 1; display: inline-block; animation: pgRot 2.4s ease-in-out infinite; }
+        @keyframes pgRot { 0%, 20% { transform: rotate(0deg); } 60%, 100% { transform: rotate(-90deg); } }
+        .pg-h { font-size: 1.6rem; font-weight: 900; color: #fcd34d; line-height: 1.3; }
+        .pg-p { font-size: 1.1rem; color: #cbd5e1; line-height: 1.6; }
+        .pg-btn { margin-top: 4px; width: 100%; max-width: 20rem; padding: 14px 0; font-size: 1.1rem; font-weight: 800; border-radius: 14px; background: #059669; color: #fff; box-shadow: 0 6px 18px rgba(5,150,105,.35); }
+        .pg-btn:active { transform: scale(.97); }
+        .pg-note { font-size: 13px; color: #94a3b8; line-height: 1.6; max-width: 20rem; }
+
+        /* ===== タイトル画面 ===== */
         #title-screen { background: radial-gradient(ellipse at 15% 0%, #14305a 0%, #0b1220 55%, #060a12 100%); }
-        .ts-wrap { display: flex; flex-direction: row; gap: 20px; height: 100%; max-width: 64rem; margin: 0 auto; padding: 14px 18px; padding-left: max(18px, env(safe-area-inset-left)); padding-right: max(18px, env(safe-area-inset-right)); }
-        .ts-left { flex: 0 0 38%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; text-align: center; min-width: 0; }
-        .ts-right { flex: 1 1 0%; min-width: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 2px; }
-        .ts-btn { width: 100%; max-width: 18rem; border-radius: 14px; font-weight: 800; padding: 12px 0; transition: transform .1s; }
+        .ts-wrap { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 28px; height: 100%; max-width: 60rem; margin: 0 auto;
+            padding: 14px 18px; padding-left: max(18px, env(safe-area-inset-left)); padding-right: max(18px, env(safe-area-inset-right)); }
+        .ts-left { flex: 1 1 0%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; text-align: center; min-width: 0; }
+        .ts-logo { font-size: 3.4rem; line-height: 1; }
+        .ts-h1 { font-size: 2rem; font-weight: 900; letter-spacing: .06em; color: #34d399; line-height: 1.15; }
+        .ts-sub { font-size: 14px; color: #94a3b8; }
+        #ts-title-now { width: 100%; max-width: 19rem; border-radius: 14px; border: 1px solid rgba(251,191,36,.45); background: rgba(251,191,36,.1); padding: 8px 12px; margin-top: 4px; }
+        .tn-lab { font-size: 12px; color: #fde68a; }
+        .tn-name { font-size: 1.2rem; font-weight: 900; color: #fcd34d; line-height: 1.3; }
+        .tn-none { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+        .ts-right { flex: 0 0 min(46%, 22rem); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+        .ts-btn { width: 100%; min-height: 54px; border-radius: 16px; font-weight: 800; font-size: 1.1rem; padding: 12px 14px; transition: transform .1s; display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: #1e293b; border: 1px solid #334155; color: #e2e8f0; }
+        .ts-btn.main { background: #059669; border-color: #059669; color: #fff; font-size: 1.3rem; min-height: 64px; box-shadow: 0 6px 18px rgba(5,150,105,.35); }
+        .ts-btn.gold { background: rgba(251,191,36,.14); border-color: rgba(251,191,36,.55); color: #fcd34d; }
         .ts-btn:active { transform: scale(.97); }
-        @media (orientation: portrait), (max-width: 640px) {
-            .ts-wrap { flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; gap: 14px; }
-            .ts-left { flex: none; padding-top: 10px; }
-            .ts-right { flex: none; overflow: visible; }
+        .ts-cnt { font-size: 13px; font-weight: 700; background: rgba(0,0,0,.35); border-radius: 9999px; padding: 2px 10px; color: #fde68a; }
+        @media (orientation: portrait) {
+            .ts-wrap { flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; gap: 18px; justify-content: flex-start; padding-top: 24px; }
+            .ts-left { flex: none; }
+            .ts-right { flex: none; width: 100%; max-width: 22rem; }
         }
         @media (max-height: 420px) and (orientation: landscape) {
-            .ts-left { gap: 6px; }
-            .ts-left .ts-logo { font-size: 2rem !important; }
-            .ts-left h1 { font-size: 1.5rem !important; }
-            .ts-btn { padding: 8px 0; }
+            .ts-wrap { gap: 20px; padding-top: 8px; padding-bottom: 8px; }
+            .ts-logo { font-size: 2.4rem; }
+            .ts-h1 { font-size: 1.6rem; }
+            .ts-right { gap: 8px; }
+            .ts-btn { min-height: 48px; padding: 8px 12px; font-size: 1.05rem; }
+            .ts-btn.main { min-height: 56px; font-size: 1.2rem; }
+        }
+
+        /* ===== 称号・実績モード ===== */
+        #records-screen { display: flex; flex-direction: column; background: radial-gradient(ellipse at 15% 0%, #14305a 0%, #0b1220 55%, #060a12 100%); color: #e2e8f0;
+            padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); padding-top: env(safe-area-inset-top); }
+        #records-screen.hidden { display: none; }
+        .rs-head { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-bottom: 1px solid #1e293b; background: rgba(15,23,42,.85); }
+        .rs-back { min-height: 44px; padding: 0 14px; border-radius: 12px; background: #1e293b; border: 1px solid #334155; font-size: 15px; font-weight: 800; color: #e2e8f0; white-space: nowrap; }
+        .rs-tabs { display: flex; gap: 6px; flex: 1 1 auto; }
+        .rs-tab { min-height: 44px; padding: 0 16px; border-radius: 12px; font-size: 15px; font-weight: 800; color: #94a3b8; background: transparent; border: 1px solid transparent; white-space: nowrap; }
+        .rs-tab.on { color: #fcd34d; background: rgba(251,191,36,.14); border-color: rgba(251,191,36,.5); }
+        #rs-count { font-size: 15px; font-weight: 800; color: #fcd34d; white-space: nowrap; }
+        #rs-body { flex: 1 1 0%; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding: 10px 14px calc(14px + env(safe-area-inset-bottom));
+            padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); }
+        .rc-now { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: linear-gradient(90deg, rgba(245,158,11,.22), rgba(244,63,94,.1)); border: 1px solid rgba(251,191,36,.55); }
+        .rc-now .ic { font-size: 2rem; line-height: 1; }
+        .rc-now .lab { font-size: 12px; color: #fde68a; }
+        .rc-now .nm { font-size: 1.2rem; font-weight: 900; color: #fcd34d; line-height: 1.3; }
+        .rc-sec { font-size: 14px; font-weight: 800; color: #fcd34d; margin: 14px 0 6px; }
+        .rc-sec small { font-size: 12px; font-weight: 400; color: #94a3b8; margin-left: 6px; }
+        .rc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+        .rc-card { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid #334155; background: rgba(15,23,42,.8); min-width: 0; }
+        .rc-card.got { border-color: rgba(251,191,36,.55); background: rgba(251,191,36,.1); }
+        .rc-card.now { box-shadow: 0 0 0 2px rgba(251,191,36,.7); }
+        .rc-ic { font-size: 1.7rem; line-height: 1.1; flex: 0 0 auto; width: 2.1rem; text-align: center; }
+        .rc-tx { min-width: 0; flex: 1 1 0%; }
+        .rc-nm { font-size: 15px; font-weight: 800; color: #fde68a; line-height: 1.35; }
+        .rc-card.lock .rc-nm { color: #cbd5e1; }
+        .rc-tag { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 800; color: #1c1917; background: #fbbf24; border-radius: 9999px; padding: 0 8px; vertical-align: middle; }
+        .rc-ds { font-size: 13px; color: #cbd5e1; line-height: 1.45; margin-top: 2px; }
+        .rc-card.lock .rc-ds { color: #94a3b8; }
+        .rc-st { font-size: 12px; color: #94a3b8; margin-top: 3px; }
+        .rc-card.got .rc-st { color: #a7f3d0; }
+        .rc-bar { height: 6px; border-radius: 9999px; background: #0f172a; border: 1px solid #334155; margin-top: 6px; overflow: hidden; }
+        .rc-bar i { display: block; height: 100%; background: #34d399; }
+        .bt-grid { grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); }
+        .bt-sum { font-size: 14px; color: #cbd5e1; padding: 2px 2px 8px; }
+        .bt-sum b { color: #fcd34d; }
+        .bt-card { display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-radius: 14px; border: 1px solid #334155; background: rgba(15,23,42,.8); min-width: 0; }
+        .bt-card.lock { opacity: .8; }
+        .bt-rank { flex: 0 0 auto; width: 3.2rem; text-align: center; font-size: 2.6rem; font-weight: 900; color: #fcd34d; line-height: 1; }
+        .bt-card.lock .bt-rank { color: #64748b; }
+        .bt-nm { font-size: 16px; font-weight: 800; color: #f1f5f9; }
+        .bt-nm span { font-size: 13px; font-weight: 400; color: #94a3b8; margin-left: 4px; }
+        .bt-nums { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 15px; font-weight: 700; margin-top: 3px; }
+        .bt-nums .t { color: #6ee7b7; font-family: ui-monospace, monospace; }
+        .bt-nums .m { color: #7dd3fc; }
+        .bt-sub { font-size: 12.5px; color: #94a3b8; margin-top: 3px; }
+        .rs-reset { margin-top: 18px; min-height: 44px; padding: 0 16px; font-size: 14px; color: #94a3b8; text-decoration: underline; }
+        @media (max-height: 420px) {
+            .rs-head { padding: 4px 10px; }
+            .rs-back, .rs-tab { min-height: 40px; }
+        }
+
+        /* ===== 結果・説明モーダル（共通パーツ） ===== */
+        .rg > * + * { margin-top: 12px; }
+        .ra { text-align: center; }
+        .r-big { font-size: 3.4rem; font-weight: 900; color: #fcd34d; line-height: 1; }
+        .r-pts { font-size: 1.4rem; font-weight: 800; color: #fff; margin-top: 6px; }
+        .r-pts small { display: block; font-size: 12px; font-weight: 400; color: #94a3b8; }
+        .r-line { font-size: 13px; color: #94a3b8; margin-top: 4px; line-height: 1.5; }
+        .r-line b { font-family: ui-monospace, monospace; font-size: 14px; }
+        .r-time { color: #fde047; } .r-mv { color: #7dd3fc; }
+        .tc { background: linear-gradient(90deg, rgba(245,158,11,.2), rgba(244,63,94,.1)); border: 1px solid rgba(251,191,36,.5); border-radius: 12px; padding: 8px 10px; text-align: center; }
+        .tc-lab { font-size: 12px; color: #fde68a; }
+        .tc-name { font-size: 1.1rem; font-weight: 900; color: #fcd34d; line-height: 1.3; }
+        .tc-sub { font-size: 12px; color: #94a3b8; margin-top: 1px; }
+        .tc-chips { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 6px; }
+        .chip { display: inline-flex; align-items: center; gap: 4px; background: #1e293b; border: 1px solid #475569; border-radius: 9999px; padding: 1px 9px; font-size: 12px; color: #e2e8f0; }
+        .new { font-size: 11px; font-weight: 900; color: #1c1917; background: #fbbf24; border-radius: 9999px; padding: 0 6px; margin-left: 4px; vertical-align: middle; }
+        .cm { background: rgba(2,6,23,.7); border: 1px solid #334155; border-radius: 10px; padding: 7px 10px; font-size: 13px; line-height: 1.5; color: #fef3c7; text-align: left; }
+        .bl { font-size: 12.5px; color: #94a3b8; text-align: center; line-height: 1.5; }
+        .bl .hd { color: #fcd34d; font-weight: 800; font-size: 13px; }
+        .r-sc { margin: 10px auto 0; max-width: 18rem; text-align: left; border-top: 1px solid #1e293b; padding-top: 6px; }
+        .r-sc .r-row b { font-size: 14px; }
+        .r-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 3px 0; font-size: 13.5px; }
+        .r-types { padding-top: 0; }
+        .r-nm { display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .r-dot { display: inline-block; width: 10px; height: 10px; border-radius: 9999px; flex: 0 0 auto; }
+        .r-tier { font-size: 12.5px; color: #94a3b8; white-space: nowrap; margin-left: auto; }
+        .mk-g { color: #34d399; } .mk-b { color: #7dd3fc; } .mk-a { color: #fcd34d; } .mk-r { color: #fb7185; }
+        .r-types b { width: 1.2rem; text-align: center; }
+        .r-hint { list-style: disc inside; color: #fde68a; font-size: 12.5px; line-height: 1.5; margin-top: 6px; }
+        .r-hint li + li { margin-top: 2px; }
+        .r-perfect { text-align: center; color: #6ee7b7; font-size: 13px; font-weight: 800; margin-top: 6px; }
+        .r-stg { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid #1e293b; font-size: 13.5px; }
+        .r-stg:last-child { border-bottom: 0; }
+
+        /* ===== 横持ちスマホ：モーダルを画面いっぱいに使って収める ===== */
+        @media (max-height: 520px) and (orientation: landscape) {
+            #modal-overlay { position: fixed; inset: 0; z-index: 60; padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+            #modal-content { position: relative; display: flex; flex-direction: column; max-width: 56rem; max-height: 100%; overflow: hidden; padding: 8px 14px; border-radius: 14px; }
+            #modal-content > * + * { margin-top: 6px; }
+            #modal-content > div:first-child { flex: 1 1 0%; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+            #modal-content > div:first-child > * + * { margin-top: 6px; }
+            #modal-icon, #modal-title { display: inline-block; vertical-align: middle; }
+            #modal-icon { font-size: 1.5rem; line-height: 1; }
+            #modal-title { font-size: 1.15rem; margin-left: 6px; }
+            #modal-desc { padding: 8px 10px; font-size: 13px; }
+            #modal-content .sticky { position: absolute; top: 6px; right: 14px; width: 30%; z-index: 2; margin: 0; padding: 0; background: none; }
+            #modal-btn { min-height: 40px; padding: 8px 0; font-size: 1rem; line-height: 1.2; }
+
+            /* 採点結果：左＝ランク＋ボタン / 中＝称号・店長・ベスト / 右＝内訳（それぞれ必要なら縦スクロール） */
+            #modal-content.has-rg { display: grid; height: 100%; grid-template-columns: minmax(0, 27%) minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; column-gap: 12px; row-gap: 6px; }
+            #modal-content.has-rg > * + * { margin-top: 0; }
+            #modal-content.has-rg > div:first-child, #modal-content.has-rg #modal-desc, #modal-content.has-rg .rg { display: contents; }
+            #modal-content.has-rg #modal-icon { grid-column: 1; grid-row: 1; align-self: center; justify-self: center; margin: 0; font-size: 1.7rem; }
+            #modal-content.has-rg #modal-title { grid-column: 2 / 4; grid-row: 1; align-self: center; text-align: left; margin: 0; font-size: 1.25rem; }
+            #modal-content.has-rg .ra { grid-column: 1; grid-row: 2; min-height: 0; overflow-y: auto; margin: 0; }
+            #modal-content.has-rg .rb, #modal-content.has-rg .rc { grid-row: 2 / span 2; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; margin: 0; }
+            #modal-content.has-rg .rb { grid-column: 2; }
+            #modal-content.has-rg .rc { grid-column: 3; }
+            #modal-content.has-rg .rb > * + * { margin-top: 6px; }
+            #modal-content.has-rg .sticky { position: static; grid-column: 1; grid-row: 3; width: auto; align-self: end; }
+            .r-big { font-size: 3rem; }
+            .r-pts { font-size: 1.3rem; margin-top: 4px; }
+            .tc { padding: 6px 8px; }
+            .cm { padding: 5px 8px; }
+        }
+        @media (max-height: 360px) and (orientation: landscape) {
+            #modal-content { padding: 6px 12px; }
+            #modal-content.has-rg { row-gap: 4px; }
+            #modal-content.has-rg #modal-title { font-size: 1.15rem; }
+            #modal-content.has-rg #modal-icon { font-size: 1.4rem; }
+            .r-big { font-size: 2.6rem; }
+            .r-pts { font-size: 1.2rem; margin-top: 2px; }
+            .r-pts small { display: none; }
+            .r-line { font-size: 12.5px; margin-top: 2px; }
+            .tc-lab, .tc-sub { display: none; }
+            .tc { padding: 5px 8px; }
+            .tc-name { font-size: 1rem; }
+            .tc-chips { margin-top: 4px; gap: 3px; }
+            .chip { padding: 0 7px; }
+            .cm { font-size: 12.5px; padding: 4px 8px; line-height: 1.4; }
+            .bl { font-size: 12px; line-height: 1.4; }
+            .r-row { padding: 1px 0; font-size: 13px; }
+            .r-sc { margin-top: 6px; padding-top: 4px; }
+            .r-hint { font-size: 12px; margin-top: 3px; line-height: 1.4; }
+            #modal-btn { min-height: 38px; padding: 6px 0; }
         }
         canvas {
             touch-action: none;
@@ -152,9 +287,6 @@
         <div id="toast"></div>
         <canvas id="fx-canvas" class="absolute inset-0 w-full h-full" style="z-index:40;pointer-events:none"></canvas>
 
-        <div id="rotate-hint" class="hidden portrait:flex absolute top-2 left-1/2 -translate-x-1/2 z-20 pointer-events-none bg-amber-400/95 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-            📱 スマホを横向きにすると遊びやすいよ！
-        </div>
 
         <div id="modal-overlay" class="absolute inset-0 bg-slate-950/90 flex items-center justify-center z-30 p-4">
             <div id="modal-content" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 pb-0 max-w-md w-full max-h-full overflow-y-auto shadow-2xl text-center space-y-5">
@@ -201,7 +333,6 @@
                             <li>⏱ 速さ・手数・正確さに応じて<strong class="text-amber-300">称号</strong>がもらえるよ！店長のコメントにも注目</li>
                             <li><strong class="text-emerald-300">3・2・1・スタート！</strong>の掛け声と同時にタイマーが動き出すよ</li>
                         </ul>
-                        <div id="collection" class="pt-1"></div>
                     </div>
                 </div>
 
@@ -232,15 +363,37 @@
     <div id="title-screen" class="hidden fixed inset-0 z-50 text-slate-200 overflow-hidden">
         <div class="ts-wrap">
             <section class="ts-left">
-                <div class="ts-logo text-5xl leading-none">📦</div>
-                <h1 class="font-black text-3xl tracking-wider text-emerald-400 leading-tight">番重ソート RTA</h1>
-                <p class="text-xs text-slate-400">激狭店舗の2枠積み直し</p>
-                <div id="ts-title-now" class="w-full max-w-[18rem] rounded-xl border border-amber-400/40 bg-amber-400/10 px-3 py-1.5"></div>
-                <button id="ts-start" class="ts-btn bg-emerald-600 hover:bg-emerald-500 text-white text-lg shadow-lg shadow-emerald-600/30">▶ ゲームスタート</button>
-                <button id="ts-rules" class="ts-btn bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm border border-slate-700">📖 遊び方</button>
+                <div class="ts-logo">📦</div>
+                <h1 class="ts-h1">番重ソート RTA</h1>
+                <p class="ts-sub">激狭店舗の2枠積み直し</p>
+                <div id="ts-title-now"></div>
             </section>
-            <section id="ts-records" class="ts-right space-y-4"></section>
+            <section class="ts-right">
+                <button id="ts-start" class="ts-btn main">▶ ゲームスタート</button>
+                <button id="ts-records-btn" class="ts-btn gold">🏆 称号・実績 <span id="ts-rec-count" class="ts-cnt"></span></button>
+                <button id="ts-rules" class="ts-btn">📖 遊び方</button>
+            </section>
         </div>
+    </div>
+
+    <div id="records-screen" class="hidden fixed inset-0 z-50">
+        <div class="rs-head">
+            <button id="rs-back" class="rs-back">← もどる</button>
+            <div class="rs-tabs">
+                <button class="rs-tab on" data-tab="titles">🏅 称号</button>
+                <button class="rs-tab" data-tab="best">📊 ベスト記録</button>
+            </div>
+            <div id="rs-count"></div>
+        </div>
+        <div id="rs-body"></div>
+    </div>
+
+    <div id="portrait-guard" role="alert">
+        <div class="pg-phone">📱</div>
+        <div class="pg-h">このゲームは<br>横画面専用です</div>
+        <div class="pg-p">スマホを<b class="text-amber-300">横向き</b>にして遊んでね！</div>
+        <button id="pg-fs" class="pg-btn">全画面にして横向きに固定</button>
+        <div class="pg-note" id="pg-note">うまく回らないときは、画面の「回転ロック（縦向きロック）」をオフにしてね。</div>
     </div>
 
     <script>
@@ -371,6 +524,7 @@
         const BEST_KEY = 'banju_rta_best_v1';
 
         let startTime = 0;
+        let pausedAt = 0;
         let elapsedTime = 0;
         let timerInterval = null;
         let timerStarted = false;
@@ -388,6 +542,7 @@
         let curDpr = 1;
 
         const modalOverlay = document.getElementById('modal-overlay');
+        const modalContent = document.getElementById('modal-content');
         const modalIcon = document.getElementById('modal-icon');
         const modalTitle = document.getElementById('modal-title');
         const modalDesc = document.getElementById('modal-desc');
@@ -657,73 +812,102 @@
             if (st.total >= 50) ids.push('m_reg2');
             return ids;
         }
-        function chipHtml(t, have) {
-            return have[t.id]
-                ? `<span class="inline-flex items-center gap-1 bg-amber-400/15 border border-amber-400/50 text-amber-200 rounded-full px-2 py-0.5 text-[11px]">${t.icon} ${t.name}</span>`
-                : `<span class="inline-flex items-center gap-1 bg-slate-800/60 border border-slate-700 text-slate-500 rounded-full px-2 py-0.5 text-[11px]">🔒 ${t.desc}</span>`;
+        function currentTitleObj(have) {
+            return ALL_TITLES.find(t => t.id === TITLE_PRIORITY.find(id => have[id]));
         }
         function renderTitle() {
-            const best = loadBest(), st = loadStats(), have = loadTitles();
-            const nowT = ALL_TITLES.find(t => t.id === TITLE_PRIORITY.find(id => have[id]));
-            document.getElementById('ts-title-now').innerHTML = nowT
-                ? `<div class="text-[10px] text-amber-200">現在の称号</div><div class="text-base font-black text-amber-300 leading-tight">${nowT.icon} ${nowT.name}</div>`
-                : `<div class="text-[11px] text-slate-300">称号はまだありません。クリアして手に入れよう！</div>`;
-
-            const rows = STAGES.map((stg, i) => {
-                const b = best[i + 1];
-                const par = parMoves(stg.crates);
-                if (!b) {
-                    return `<div class="flex items-center justify-between py-1.5 border-b border-slate-800 last:border-0 text-slate-500 text-xs"><span class="font-bold">STAGE ${stg.stage}（${stg.crates}箱）</span><span>未クリア</span></div>`;
-                }
-                const rk = rankFor(b.score);
-                return `<div class="py-1.5 border-b border-slate-800 last:border-0">
-                    <div class="flex items-center justify-between gap-2 text-xs">
-                        <span class="font-bold text-slate-200">STAGE ${stg.stage}<span class="text-slate-500 font-normal">（${stg.crates}箱）</span></span>
-                        <span class="font-black text-amber-300 text-lg leading-none w-5 text-center">${rk}</span>
-                        <span class="font-mono text-emerald-300">⏱ ${fmtMs(b.ms)}</span>
-                        <span class="text-sky-300">👟 ${b.moves !== undefined ? b.moves + '手' : '—'}</span>
-                        <span class="font-bold">${b.score}点</span>
-                    </div>
-                    <div class="text-[10px] text-slate-500 text-right">クリア ${st.clears[i]}回 ・ 手数の目安 ${par}手</div>
-                </div>`;
-            }).join('');
-
-            const grp = (label, list) => `<div><div class="text-[10px] text-slate-400 pb-1">${label}</div><div class="flex flex-wrap gap-1">${list.map(t => chipHtml(t, have)).join('')}</div></div>`;
-            const got = ALL_TITLES.filter(t => have[t.id]).length;
-            document.getElementById('ts-records').innerHTML = `
-                <div class="rounded-2xl border border-slate-700 bg-slate-900/70 p-3">
-                    <div class="text-sm font-bold text-emerald-300 pb-1">📊 自己ベスト</div>
-                    ${rows}
-                </div>
-                <div class="rounded-2xl border border-slate-700 bg-slate-900/70 p-3 space-y-2">
-                    <div class="text-sm font-bold text-amber-300">🏆 称号コレクション <span class="text-xs text-slate-400">${got}/${ALL_TITLES.length}</span></div>
-                    ${grp('スピード（1箱あたりのタイム）', TIME_TITLES.map(t => ALL_TITLES.find(a => a.id === t.id)))}
-                    ${grp('バッジ', BADGES)}
-                    ${grp('名人', MASTERS)}
-                </div>
-                <div class="text-[11px] text-slate-500 flex items-center justify-between pb-2">
-                    <span>累計クリア ${st.total}回</span>
-                    <button id="ts-reset" class="underline">記録をリセット</button>
-                </div>`;
-            document.getElementById('ts-reset').addEventListener('click', () => {
-                if (!confirm('ベスト記録・称号・クリア回数をすべて消します。よろしいですか？')) return;
-                try { [BEST_KEY, TITLES_KEY, STATS_KEY].forEach(k => localStorage.removeItem(k)); } catch (e) {}
-                renderTitle();
-            });
-        }
-        function collectionHtml() {
             const have = loadTitles();
+            const nowT = currentTitleObj(have);
+            document.getElementById('ts-title-now').innerHTML = nowT
+                ? `<div class="tn-lab">現在の称号</div><div class="tn-name">${nowT.icon} ${nowT.name}</div>`
+                : `<div class="tn-none">称号はまだありません。<br>クリアして手に入れよう！</div>`;
             const got = ALL_TITLES.filter(t => have[t.id]).length;
-            const chips = ALL_TITLES.map(t => have[t.id]
-                ? `<span class="inline-flex items-center gap-1 bg-amber-400/15 border border-amber-400/50 text-amber-200 rounded-full px-2 py-0.5 text-[10px]">${t.icon} ${t.name}</span>`
-                : `<span class="inline-flex items-center gap-1 bg-slate-800/60 border border-slate-700 text-slate-500 rounded-full px-2 py-0.5 text-[10px]" title="${t.desc}">🔒 ${t.desc}</span>`
-            ).join('');
-            return `<div class="text-center text-amber-300 text-[11px] font-bold">🏆 称号コレクション ${got}/${ALL_TITLES.length}</div><div class="flex flex-wrap gap-1 justify-center pt-1">${chips}</div>`;
+            document.getElementById('ts-rec-count').textContent = `${got}/${ALL_TITLES.length}`;
         }
-        function renderCollection() {
-            const el = document.getElementById('collection');
-            if (el) el.innerHTML = collectionHtml();
+
+        // ===== 称号・実績モード =====
+        const recordsScreen = document.getElementById('records-screen');
+        let recTab = 'titles';
+        function progressOf(id, st) {
+            if (id === 'm_milk') return { cur: Math.min(st.milk, 10), max: 10 };
+            if (id === 'm_reg')  return { cur: Math.min(st.total, 10), max: 10 };
+            if (id === 'm_reg2') return { cur: Math.min(st.total, 50), max: 50 };
+            return null;
         }
+        function dateText(v) {
+            if (typeof v !== 'number' || v < 1e12) return '';
+            try { return new Date(v).toLocaleDateString('ja-JP') + ' 獲得'; } catch (e) { return ''; }
+        }
+        function recCard(t, have, st, nowT) {
+            const own = have[t.id];
+            const pr = !own ? progressOf(t.id, st) : null;
+            const isNow = nowT && nowT.id === t.id;
+            return `<div class="rc-card ${own ? 'got' : 'lock'}${isNow ? ' now' : ''}">
+                <div class="rc-ic">${own ? t.icon : '🔒'}</div>
+                <div class="rc-tx">
+                    <div class="rc-nm">${t.name}${isNow ? '<span class="rc-tag">いまの称号</span>' : ''}</div>
+                    <div class="rc-ds">${t.desc}</div>
+                    ${own ? `<div class="rc-st">${dateText(own) || '獲得済み'}</div>` : ''}
+                    ${pr ? `<div class="rc-bar"><i style="width:${Math.round(pr.cur / pr.max * 100)}%"></i></div><div class="rc-st">${pr.cur} / ${pr.max} 回</div>` : ''}
+                </div>
+            </div>`;
+        }
+        function renderRecords() {
+            const best = loadBest(), st = loadStats(), have = loadTitles();
+            const nowT = currentTitleObj(have);
+            const got = ALL_TITLES.filter(t => have[t.id]).length;
+            document.getElementById('rs-count').textContent = `🏆 ${got}/${ALL_TITLES.length}`;
+            recordsScreen.querySelectorAll('.rs-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === recTab));
+            const body = document.getElementById('rs-body');
+            if (recTab === 'titles') {
+                const grp = (label, sub, list) => `<div class="rc-sec">${label}<small>${sub}</small></div><div class="rc-grid">${list.map(t => recCard(t, have, st, nowT)).join('')}</div>`;
+                body.innerHTML = `
+                    <div class="rc-now">
+                        <div class="ic">${nowT ? nowT.icon : '🔰'}</div>
+                        <div><div class="lab">現在の称号</div><div class="nm">${nowT ? nowT.name : 'まだありません（クリアして手に入れよう！）'}</div></div>
+                    </div>
+                    ${grp('⏱ スピード称号', '1箱あたりのタイム', TIME_TITLES.map(t => ALL_TITLES.find(a => a.id === t.id)))}
+                    ${grp('🎖 バッジ', 'クリアのたびにチェック', BADGES)}
+                    ${grp('🥇 名人', 'やりこみ要素', MASTERS)}`;
+            } else {
+                const cards = STAGES.map((stg, i) => {
+                    const b = best[i + 1];
+                    const par = parMoves(stg.crates);
+                    if (!b) {
+                        return `<div class="bt-card lock"><div class="bt-rank">－</div><div><div class="bt-nm">STAGE ${stg.stage}<span>（${stg.crates}箱）</span></div><div class="bt-sub">未クリア</div></div></div>`;
+                    }
+                    return `<div class="bt-card"><div class="bt-rank">${rankFor(b.score)}</div><div>
+                        <div class="bt-nm">STAGE ${stg.stage}<span>（${stg.crates}箱）</span></div>
+                        <div class="bt-nums"><span class="t">⏱ ${fmtMs(b.ms)}</span><span class="m">👟 ${b.moves !== undefined ? b.moves + '手' : '—'}</span><span>${b.score}点</span></div>
+                        <div class="bt-sub">クリア ${st.clears[i]}回 ・ 手数の目安 ${par}手</div></div></div>`;
+                }).join('');
+                body.innerHTML = `
+                    <div class="bt-sum">累計クリア <b>${st.total}</b>回 ・ 牛乳が最上段の満点 <b>${st.milk}</b>回</div>
+                    <div class="rc-grid bt-grid">${cards}</div>
+                    <button id="rs-reset" class="rs-reset">記録をリセット</button>`;
+                document.getElementById('rs-reset').addEventListener('click', () => {
+                    if (!confirm('ベスト記録・称号・クリア回数をすべて消します。よろしいですか？')) return;
+                    try { [BEST_KEY, TITLES_KEY, STATS_KEY].forEach(k => localStorage.removeItem(k)); } catch (e) {}
+                    renderRecords(); renderTitle();
+                });
+            }
+        }
+        function openRecords() {
+            titleScreen.classList.add('hidden');
+            recTab = 'titles';
+            renderRecords();
+            document.getElementById('rs-body').scrollTop = 0;
+            recordsScreen.classList.remove('hidden');
+        }
+        function closeRecords() {
+            recordsScreen.classList.add('hidden');
+            renderTitle();
+            titleScreen.classList.remove('hidden');
+        }
+        document.getElementById('rs-back').addEventListener('click', closeRecords);
+        recordsScreen.querySelectorAll('.rs-tab').forEach(b => b.addEventListener('click', () => {
+            recTab = b.dataset.tab; renderRecords(); document.getElementById('rs-body').scrollTop = 0;
+        }));
 
         function bossComment(ev, ms, moves, n) {
             const spc = ms / 1000 / n, par = parMoves(n);
@@ -741,18 +925,19 @@
             return pick(['ギリギリ合格！次はまとまりを意識してみよう。', '合格は合格！でも伸びしろ、たっぷりあるぞ。']);
         }
         function commentCard(text) {
-            return `<div class="cm bg-slate-950/70 border border-slate-700 rounded-lg p-2 text-xs text-amber-100">🧑‍💼 店長「${text}」</div>`;
+            return `<div class="cm">🧑‍💼 店長「${text}」</div>`;
         }
         function titleCard(tt, badges, fresh, spc) {
+            const nw = id => fresh.includes(id) ? '<b class="new">NEW</b>' : '';
             const chips = badges.map(id => {
                 const b = ALL_TITLES.find(x => x.id === id);
-                return `<span class="inline-flex items-center gap-1 bg-slate-800 border border-slate-600 rounded-full px-2 py-0.5 text-[11px]">${b.icon} ${b.name}${fresh.includes(id) ? ' <b class="text-amber-300">NEW</b>' : ''}</span>`;
+                return `<span class="chip">${b.icon} ${b.name}${nw(id)}</span>`;
             }).join('');
-            return `<div class="tc bg-gradient-to-r from-amber-500/20 to-rose-500/10 border border-amber-400/50 rounded-xl p-2 text-center space-y-1">
-                <div class="tcl text-[10px] text-amber-200">獲得称号${fresh.includes(tt.id) ? ' <b class="text-amber-300">NEW</b>' : ''}</div>
-                <div class="text-lg font-black text-amber-300">${tt.icon} ${tt.name}${fresh.includes(tt.id) ? ' <b class="tcn text-[10px] align-middle">NEW</b>' : ''}</div>
-                <div class="tcs text-[11px] text-slate-400">1箱あたり ${spc.toFixed(1)}秒</div>
-                ${chips ? `<div class="flex flex-wrap gap-1 justify-center">${chips}</div>` : ''}
+            return `<div class="tc">
+                <div class="tc-lab">獲得称号</div>
+                <div class="tc-name">${tt.icon} ${tt.name}${nw(tt.id)}</div>
+                <div class="tc-sub">1箱あたり ${spc.toFixed(1)}秒</div>
+                ${chips ? `<div class="tc-chips">${chips}</div>` : ''}
             </div>`;
         }
         function bestLine(b) {
@@ -760,9 +945,9 @@
             const bits = [];
             if (!first) { if (b.newMs) bits.push('タイム'); if (b.newMoves) bits.push('手数'); if (b.newScore) bits.push('点数'); }
             const head = first
-                ? '<p class="text-center text-amber-300 text-xs font-bold">🎖 初クリア記録！</p>'
-                : (bits.length ? `<p class="text-center text-amber-300 text-xs font-bold">🏅 自己ベスト更新！（${bits.join('・')}）</p>` : '');
-            return head + `<p class="text-center text-slate-400 text-[11px]">ベスト ⏱ ${fmtMs(b.best.ms)} ／ 👟 ${b.best.moves}手 ／ ${b.best.score}点</p>`;
+                ? '<div class="hd">🎖 初クリア記録！</div>'
+                : (bits.length ? `<div class="hd">🏅 自己ベスト更新！（${bits.join('・')}）</div>` : '');
+            return `<div class="bl">${head}<div>ベスト ⏱ ${fmtMs(b.best.ms)} ／ 👟 ${b.best.moves}手 ／ ${b.best.score}点</div></div>`;
         }
 
         function clearFx() {
@@ -821,6 +1006,7 @@
             activeRemoveButtons = [];
             activeTrolleySwapButtons = [];
             stopTimer();
+            pausedAt = 0;
             elapsedTime = 0;
             timerStarted = false;
             renderTimer();
@@ -854,11 +1040,12 @@
             timerStarted = true;
             startTime = Date.now();
             clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                elapsedTime = Date.now() - startTime;
-                renderTimer();
-                timeToasts();
-            }, 30);
+            timerInterval = setInterval(tickTimer, 30);
+        }
+        function tickTimer() {
+            elapsedTime = Date.now() - startTime;
+            renderTimer();
+            timeToasts();
         }
         function stopTimer() {
             clearInterval(timerInterval);
@@ -1937,8 +2124,11 @@
         function showResult(icon, title, html, btnText) {
             modalIcon.textContent = icon;
             modalTitle.textContent = title;
+            modalTitle.style.color = icon === '⚠️' ? '#fbbf24' : '';
             modalDesc.innerHTML = html;
             modalBtn.textContent = btnText;
+            modalContent.classList.toggle('has-rg', html.indexOf('class="rg"') !== -1);
+            modalContent.scrollTop = 0;
             modalOverlay.classList.remove('hidden');
         }
 
@@ -2009,57 +2199,38 @@
             extra = extra || {};
             const rows = ev.perType.map(p => {
                 const mark = p.score >= 1 ? '◎' : (p.score >= 0.75 ? '○' : (p.score >= 0.5 ? '△' : '✕'));
-                const markColor = p.score >= 1 ? 'text-emerald-400' : (p.score >= 0.75 ? 'text-sky-300' : (p.score >= 0.5 ? 'text-amber-300' : 'text-rose-400'));
-                return `<div class="flex items-center justify-between gap-2">
-                    <span class="flex items-center gap-1.5 min-w-0"><span class="inline-block w-2.5 h-2.5 rounded-full shrink-0" style="background:${p.type.color}"></span><span class="truncate">${p.type.name}</span></span>
-                    <span class="text-slate-400 text-[11px] whitespace-nowrap">${tierText(p.tiers)}</span>
-                    <span class="font-bold ${markColor} w-4 text-center">${mark}</span>
-                </div>`;
+                const mc = p.score >= 1 ? 'mk-g' : (p.score >= 0.75 ? 'mk-b' : (p.score >= 0.5 ? 'mk-a' : 'mk-r'));
+                return `<div class="r-row"><span class="r-nm"><i class="r-dot" style="background:${p.type.color}"></i>${p.type.name}</span><span class="r-tier">${tierText(p.tiers)}</span><b class="${mc}">${mark}</b></div>`;
             }).join('');
 
             const hints = [];
-            const worst = ev.perType.slice().sort((x, y) => x.score - y.score)[0];
             ev.perType.filter(p => p.score < 1).sort((x, y) => x.score - y.score).slice(0, 2).forEach(p => {
-                if (p.extra > 0) {
-                    hints.push(`「${p.type.name}」は${p.k}箱にまとめられるのに${p.m}箱に分かれています。`);
-                }
-                if (p.gap > 0) {
-                    hints.push(`「${p.type.name}」の番重の間に別の番重が挟まっています。分けるなら隣り合う段に。`);
-                }
+                if (p.extra > 0) hints.push(`「${p.type.name}」は${p.k}箱で収まるのに${p.m}箱に分かれています。`);
+                if (p.gap > 0) hints.push(`「${p.type.name}」の間に別の番重が挟まっています。`);
             });
-            if (ev.milkTop < 1) {
-                hints.push(`牛乳は最上段にあると高得点です（現在は${tierText(ev.milkTiers)}）。`);
-            }
-            if (ev.empties > 0) {
-                hints.push(`空の番重が台車に残っています（${ev.empties}箱）。`);
-            }
+            if (ev.milkTop < 1) hints.push(`牛乳は最上段が高得点（今は${tierText(ev.milkTiers)}）。`);
+            if (ev.empties > 0) hints.push(`空の番重が台車に残っています（${ev.empties}箱）。`);
             const hintHtml = hints.length
-                ? `<ul class="list-disc list-inside text-amber-200 text-[11px] space-y-0.5 pt-1">${hints.map(h => `<li>${h}</li>`).join('')}</ul>`
-                : `<p class="text-emerald-300 text-xs font-bold text-center pt-1">完璧な仕分けです！</p>`;
+                ? `<ul class="r-hint">${hints.slice(0, 3).map(h => `<li>${h}</li>`).join('')}</ul>`
+                : `<p class="r-perfect">完璧な仕分けです！</p>`;
 
-            return `
-                <div class="rg space-y-3">
-                    <div class="lc space-y-2">
-                        <div class="rk text-center space-y-0.5">
-                            <div class="text-5xl font-black text-amber-300 leading-none">${ev.rank}</div>
-                            <div class="text-lg font-bold text-white">${ev.total}点 <span class="text-xs font-normal text-slate-400">/ 100（合格 ${PASS_SCORE}点）</span></div>
-                            <div class="text-xs text-slate-400">タイム <span class="text-yellow-300 font-mono">${timeText}</span> ・ 手数 <span class="text-sky-300 font-mono">${extra.moves !== undefined ? extra.moves : '-'}</span></div>
-                        </div>
-                        ${extra.titleHtml || ''}
-                        ${extra.commentHtml || ''}
-                        ${extra.bestHtml || ''}
-                    </div>
-                    <div class="space-y-2">
-                        <div class="space-y-1 text-xs">
-                            <div class="flex justify-between"><span>種類のまとまり</span><span class="font-bold">${ev.concPts} / 60</span></div>
-                            <div class="flex justify-between"><span>牛乳が最上段</span><span class="font-bold">${ev.milkPts} / 30</span></div>
-                            <div class="flex justify-between"><span>片付け</span><span class="font-bold">${ev.cleanPts} / 10</span></div>
-                        </div>
-                        <div class="space-y-1 text-xs border-t border-slate-800 pt-2">${rows}</div>
-                        ${hintHtml}
+            return `<div class="rg">
+                <div class="ra">
+                    <div class="r-big">${ev.rank}</div>
+                    <div class="r-pts">${ev.total}点<small>/ 100（合格 ${PASS_SCORE}点）</small></div>
+                    <div class="r-line">タイム <b class="r-time">${timeText}</b><br>手数 <b class="r-mv">${extra.moves !== undefined ? extra.moves : '-'}</b></div>
+                    <div class="r-sc">
+                        <div class="r-row"><span>まとまり</span><b>${ev.concPts} / 60</b></div>
+                        <div class="r-row"><span>牛乳が最上段</span><b>${ev.milkPts} / 30</b></div>
+                        <div class="r-row"><span>片付け</span><b>${ev.cleanPts} / 10</b></div>
                     </div>
                 </div>
-            `;
+                <div class="rb">${extra.titleHtml || ''}${extra.commentHtml || ''}${extra.bestHtml || ''}${extra.titleHtml ? '' : hintHtml}</div>
+                <div class="rc">
+                    <div class="r-types">${rows}</div>
+                    ${extra.titleHtml ? hintHtml : ''}
+                </div>
+            </div>`;
         }
 
         function fmtMs(ms) {
@@ -2087,32 +2258,29 @@
             const rows = STAGES.map((st, i) => {
                 const r = stageResults[i];
                 if (!r) return '';
-                return `<div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-800 last:border-0">
-                    <div class="text-slate-200 font-bold">STAGE ${st.stage} (${st.crates}箱)</div>
-                    <span class="font-black text-amber-300 text-base">${r.rank}</span>
-                    <span class="font-bold">${r.score}点</span>
-                    <span class="text-sky-300 text-[11px]">${r.moves !== undefined ? r.moves : '-'}手</span>
-                    <span class="font-mono text-emerald-300">${r.timeText}</span>
+                return `<div class="r-stg">
+                    <span class="font-bold" style="color:#e2e8f0">STAGE ${st.stage}<span style="color:#94a3b8;font-weight:400"> (${st.crates}箱)</span></span>
+                    <b class="r-big" style="font-size:1.3rem">${r.rank}</b>
+                    <b>${r.score}点</b>
+                    <span class="r-mv">${r.moves !== undefined ? r.moves : '-'}手</span>
+                    <span class="r-time" style="font-family:ui-monospace,monospace">${r.timeText}</span>
                 </div>`;
             }).join('');
+            const haveNow = loadTitles();
+            const gotN = ALL_TITLES.filter(t => haveNow[t.id]).length;
 
-            const html = `
-                <div class="rg space-y-3">
-                    <div class="space-y-2">
-                        <div class="text-center space-y-0.5">
-                            <div class="text-xs text-slate-400">総合ランク</div>
-                            <div class="text-5xl font-black text-amber-300 leading-none">${rank}</div>
-                            <div class="text-lg font-bold text-white">平均 ${avg}点</div>
-                            <div class="text-xs text-slate-400">合計タイム <span class="text-yellow-300 font-mono text-base">${fmtMs(totalMs)}</span> ・ 手数 <span class="text-sky-300 font-mono">${totalMoves}</span></div>
-                        </div>
-                        ${titleCard(tt, badges, fresh, totalMs / 1000 / totalCrates)}
-                    </div>
-                    <div class="space-y-2">
-                        <div class="text-xs border-t border-slate-800 pt-1">${rows}</div>
-                        <div class="border-t border-slate-800 pt-2">${collectionHtml()}</div>
-                    </div>
+            const html = `<div class="rg">
+                <div class="ra">
+                    <div class="r-line" style="margin:0">総合ランク</div>
+                    <div class="r-big">${rank}</div>
+                    <div class="r-pts">平均 ${avg}点</div>
+                    <div class="r-line">合計タイム <b class="r-time">${fmtMs(totalMs)}</b><br>手数 <b class="r-mv">${totalMoves}</b></div>
                 </div>
-            `;
+                <div class="rb">${titleCard(tt, badges, fresh, totalMs / 1000 / totalCrates)}
+                    <div class="bl">🏆 称号コレクション ${gotN}/${ALL_TITLES.length}<br>（タイトルの「称号・実績」で確認できるよ）</div>
+                </div>
+                <div class="rc">${rows}</div>
+            </div>`;
             showResult('👑', '全ステージ制覇！', html, '🏠 タイトルへ戻る');
             confetti(200);
         }
@@ -2127,6 +2295,7 @@
             stageTries = STAGES.map(() => 0);
             currentStageIdx = 0;
             modalOverlay.classList.add('hidden');
+            recordsScreen.classList.add('hidden');
             initGame();
             clearFx();
             renderTitle();
@@ -2134,6 +2303,8 @@
         }
         function showRules() {
             titleScreen.classList.add('hidden');
+            modalContent.classList.remove('has-rg');
+            modalTitle.style.color = '';
             if (RULES) {
                 modalIcon.textContent = RULES.icon;
                 modalTitle.textContent = RULES.title;
@@ -2141,10 +2312,10 @@
                 modalBtn.textContent = RULES.btn;
             }
             modalOverlay.classList.remove('hidden');
-            renderCollection();
         }
         document.getElementById('ts-start').addEventListener('click', () => { sfx.init(); titleScreen.classList.add('hidden'); restartRun(); });
         document.getElementById('ts-rules').addEventListener('click', () => { sfx.init(); showRules(); });
+        document.getElementById('ts-records-btn').addEventListener('click', () => { sfx.init(); openRecords(); });
         document.getElementById('home-btn').addEventListener('click', () => { sfx.init(); goTitle(false); });
 
         function restartRun() {
@@ -2255,6 +2426,43 @@
             startCountdown();
         });
 
+        // ===== 横画面専用ガード =====
+        // 縦持ちスマホでは画面全体を「横にしてね」で覆う。プレイ中なら裏でタイマーも止める。
+        const PORTRAIT_MQ = window.matchMedia('(orientation: portrait) and (hover: none) and (pointer: coarse) and (max-width: 820px)');
+        function onPortraitChange() {
+            if (PORTRAIT_MQ.matches) {
+                if (gameState === 'PLAYING' && timerStarted && !pausedAt) {
+                    pausedAt = Date.now();
+                    clearInterval(timerInterval);
+                }
+            } else {
+                if (pausedAt) {
+                    startTime += Date.now() - pausedAt;
+                    pausedAt = 0;
+                    clearInterval(timerInterval);
+                    timerInterval = setInterval(tickTimer, 30);
+                }
+                setTimeout(resizeCanvas, 200);
+            }
+        }
+        if (PORTRAIT_MQ.addEventListener) PORTRAIT_MQ.addEventListener('change', onPortraitChange);
+        else if (PORTRAIT_MQ.addListener) PORTRAIT_MQ.addListener(onPortraitChange);
+
+        const pgFs = document.getElementById('pg-fs');
+        if (!document.documentElement.requestFullscreen) {
+            // iPhone の Safari など、全画面や向き固定ができない環境
+            pgFs.style.display = 'none';
+            document.getElementById('pg-note').textContent = 'スマホの「画面の向きのロック」をオフにして、本体を横にしてね。';
+        }
+        pgFs.addEventListener('click', async () => {
+            sfx.init();
+            try {
+                if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+                if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
+            } catch (e) {}
+            setTimeout(resizeCanvas, 200);
+        });
+
         function syncAppHeight() {
             document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
         }
@@ -2282,7 +2490,6 @@
         syncAppHeight();
         window.onload = () => {
             RULES = { icon: modalIcon.textContent, title: modalTitle.textContent, html: modalDesc.innerHTML, btn: modalBtn.textContent };
-            renderCollection();
             initGame();
             modalOverlay.classList.add('hidden');
             renderTitle();
